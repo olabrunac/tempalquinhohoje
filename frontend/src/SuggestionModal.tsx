@@ -42,7 +42,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">sabe de algum palquinho?</h2>
-        <p className="modal-sub">anônimo — manda a data e quem tu imagina que vai organizar</p>
+        <p className="modal-sub">manda a data e quem ta organizando o rolê, bota o insta do post anunciando tbm pra gente confirmar certinho</p>
         <input
           className="input"
           type="date"
