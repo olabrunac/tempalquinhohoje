@@ -28,6 +28,46 @@ function buildCells(year: number, month: number): (Date | null)[] {
   return cells
 }
 
+function VisitsPanel({ visits }: { visits: VisitsAdminOut | null }) {
+  const [open, setOpen] = useState(false)
+  const visitDays = visits?.days.slice(-14) ?? []
+  const visitMax = Math.max(1, ...visitDays.map((v) => v.count))
+  return (
+    <div className="panel visit-panel">
+      <button type="button" className="visit-toggle" onClick={() => setOpen((o) => !o)}>
+        <span className="panel-title">visitas</span>
+        <span className={`visit-toggle-arrow ${open ? 'open' : ''}`}>▸</span>
+      </button>
+      {open &&
+        (visits ? (
+          <>
+            <div className="visit-stats">
+              <span className="visit-stat">
+                <strong>{visits.today}</strong> hoje
+              </span>
+              <span className="visit-stat">
+                <strong>{visits.total}</strong> total
+              </span>
+            </div>
+            <ul className="visit-days">
+              {visitDays.map((v) => (
+                <li key={v.day} className="visit-day">
+                  <span className="visit-day-label">{fmtShort(v.day)}</span>
+                  <span className="visit-day-bar">
+                    <span className="visit-day-fill" style={{ width: `${(v.count / visitMax) * 100}%` }} />
+                  </span>
+                  <span className="visit-day-count">{v.count}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="muted">carregando...</p>
+        ))}
+    </div>
+  )
+}
+
 export default function AdminScreen() {
   const [adminKey, setAdminKey] = useState<string>(() => localStorage.getItem(ADMIN_KEY) ?? '')
   const [password, setPassword] = useState('')
@@ -204,8 +244,6 @@ export default function AdminScreen() {
   const cells = buildCells(month.year, month.month)
   const selected = selectedDay ? dayMap.get(selectedDay) : undefined
   const todayIso = iso(now)
-  const visitDays = visits?.days.slice(-14) ?? []
-  const visitMax = Math.max(1, ...visitDays.map((v) => v.count))
 
   const nav = (delta: number) => {
     const next = new Date(month.year, month.month + delta, 1)
@@ -278,6 +316,7 @@ export default function AdminScreen() {
             <span className="legend-no">NÃO marcado</span>
             <span className="legend-null">sem marcação</span>
           </div>
+          <VisitsPanel visits={visits} />
         </section>
 
         <section className="panel-col">
@@ -320,38 +359,6 @@ export default function AdminScreen() {
               </>
             )}
             {feedback && <p className="error">{feedback}</p>}
-          </div>
-
-          <div className="panel">
-            <h3 className="panel-title">visitas</h3>
-            {visits ? (
-              <>
-                <div className="visit-stats">
-                  <span className="visit-stat">
-                    <strong>{visits.today}</strong> hoje
-                  </span>
-                  <span className="visit-stat">
-                    <strong>{visits.total}</strong> total
-                  </span>
-                </div>
-                <ul className="visit-days">
-                  {visitDays.map((v) => (
-                    <li key={v.day} className="visit-day">
-                      <span className="visit-day-label">{fmtShort(v.day)}</span>
-                      <span className="visit-day-bar">
-                        <span
-                          className="visit-day-fill"
-                          style={{ width: `${(v.count / visitMax) * 100}%` }}
-                        />
-                      </span>
-                      <span className="visit-day-count">{v.count}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <p className="muted">carregando...</p>
-            )}
           </div>
 
           <div className="panel">

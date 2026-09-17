@@ -649,6 +649,37 @@ body {
 
 /* ---- visitas ---- */
 
+.visit-panel {
+  gap: 0.75rem;
+}
+
+.visit-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.visit-toggle .panel-title {
+  color: #f3f4f6;
+}
+
+.visit-toggle-arrow {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  transition: transform 0.15s ease;
+}
+
+.visit-toggle-arrow.open {
+  transform: rotate(90deg);
+}
+
 .visit-stats {
   display: flex;
   gap: 2rem;
