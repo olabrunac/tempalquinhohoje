@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+*.db
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.vercel/
+.git/
