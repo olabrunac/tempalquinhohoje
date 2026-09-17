@@ -124,7 +124,7 @@ export default function AdminScreen() {
       setAdminKey(password.trim())
       setPassword('')
     } catch (err) {
-      setLoginError(err instanceof ApiError && err.status === 401 ? 'senha errada, hein amigo!' : err instanceof Error ? err.message : 'deu ruim')
+      setLoginError(err instanceof ApiError && err.status === 401 ? 'senha errada!' : err instanceof Error ? err.message : 'deu ruim')
     } finally {
       setBusy(false)
     }
@@ -330,7 +330,7 @@ export default function AdminScreen() {
                 </p>
                 <textarea
                   className="textarea"
-                  placeholder="nota (opcional) — ex.: 'na casa do Bruno' ou 'show do X sem palquinho'"
+                  placeholder="nota (opcional) — ex.: 'palquinho da bateria' ou 'mas tem batizado quimibyte'"
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
                   rows={2}

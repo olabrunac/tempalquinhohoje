@@ -71,8 +71,8 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">sabe de algum palquinho?</h2>
-        <p className="modal-sub">manda a data e quem ta organizando o rolê, bota o insta do post anunciando tbm pra gente confirmar certinho</p>
+        <h2 className="modal-title">sabe de algum? manda aí</h2>
+        <p className="modal-sub">manda a data e quem ta organizando o rolê, tbm bota o insta do post do anuncio pra facilitar a validação</p>
 
         <div className="mini-cal">
           <div className="mini-cal-nav">
@@ -119,7 +119,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
             })}
           </div>
         </div>
-        {day && <p className="mini-cal-date">rolê em: {fmtDay(day)}</p>}
+        {day && <p className="mini-cal-date">data: {fmtDay(day)}</p>}
 
         <input
           className="input"
