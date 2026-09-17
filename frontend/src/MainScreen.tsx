@@ -54,9 +54,6 @@ export default function MainScreen() {
     <div className={`screen ${hasPalquinho ? 'yes' : 'no'}`}>
       <header className="topbar">
         {today ? <span className="date-line">{fmtDay(today.day)}</span> : <span />}
-        <Link className="admin-link" to="/admin">
-          admin
-        </Link>
       </header>
 
       {error ? (
@@ -92,13 +89,18 @@ export default function MainScreen() {
         })}
       </footer>
 
-      {thankYou ? (
-        <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
-      ) : (
-        <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
-          sabe de algum palquinho?
-        </button>
-      )}
+      <div className="corner-nav">
+        {thankYou ? (
+          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
+        ) : (
+          <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
+            sabe de algum palquinho?
+          </button>
+        )}
+        <Link className="corner-admin" to="/admin">
+          admin
+        </Link>
+      </div>
 
       {showSuggestion && (
         <SuggestionModal
