@@ -110,7 +110,7 @@ export default function MainScreen() {
             .join(' ')
           const title = has
             ? day?.note || (day?.instagram ? 'ver anúncio no instagram ↗' : 'tem palquinho! 🎉')
-            : undefined
+            : 'acho que não tem'
           const inner = (
             <>
               <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
