@@ -30,8 +30,8 @@ function currentWeek(): Date[] {
 }
 
 function fireConfetti() {
-  const colors = ['#16a34a', '#22c55e', '#86efac', '#ffffff', '#facc15']
-  const defaults = { spread: 70, ticks: 220, gravity: 1, startVelocity: 45, colors } as const
+  const colors = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899']
+  const defaults = { spread: 70, ticks: 220, gravity: 1, startVelocity: 45, colors, zIndex: 1 } as const
   void confetti({ ...defaults, particleCount: 140, origin: { x: 0.2, y: 0.7 } })
   void confetti({ ...defaults, particleCount: 140, origin: { x: 0.8, y: 0.7 } })
 }

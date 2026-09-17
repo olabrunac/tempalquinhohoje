@@ -93,6 +93,8 @@ body {
   justify-content: center;
   gap: 1.5rem;
   padding: 1.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 .big-answer {
