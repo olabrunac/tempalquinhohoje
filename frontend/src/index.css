@@ -123,24 +123,29 @@ body {
 
 .note {
   font-size: 1.25rem;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.7);
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 0.5rem 1rem;
   border-radius: 999px;
+  text-align: center;
 }
 
 .event-insta {
   font-size: 1rem;
+  font-weight: 700;
   color: #fff;
-  background: #1d4ed8;
-  padding: 0.5rem 1rem;
+  background: var(--green);
+  padding: 0.6rem 1.25rem;
   border-radius: 999px;
   text-decoration: none;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  transition: filter 0.15s ease, transform 0.1s ease;
 }
 
 .event-insta:hover {
-  background: #2563eb;
+  filter: brightness(1.1);
+  transform: scale(1.03);
 }
 
 /* ---- sugestão no canto ---- */

@@ -65,6 +65,7 @@ export default function MainScreen() {
           {!loading && (
             <>
               <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
+              {today?.note && <p className="note">{today.note}</p>}
               {today?.instagram && hasPalquinho && (
                 <a
                   className="event-insta"
@@ -75,7 +76,6 @@ export default function MainScreen() {
                   ver anúncio no instagram ↗
                 </a>
               )}
-              {today?.note && <p className="note">{today.note}</p>}
             </>
           )}
         </main>
