@@ -77,7 +77,7 @@ export default function MainScreen() {
               {today && <p className="date-line">{fmtDay(today.day)}</p>}
               <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
               {today?.note && <p className="note">{today.note}</p>}
-              {today?.instagram && hasPalquinho && (
+              {today?.instagram && (
                 <a
                   className="event-insta"
                   href={today.instagram}
@@ -104,20 +104,20 @@ export default function MainScreen() {
             has ? 'yes' : 'no',
             isToday ? 'today' : '',
             isPast ? 'past' : '',
-            has && day?.instagram ? 'clickable' : '',
+            day?.instagram ? 'clickable' : '',
           ]
             .filter(Boolean)
             .join(' ')
           const title = has
             ? day?.note || (day?.instagram ? 'ver anúncio no instagram ↗' : 'tem palquinho! 🎉')
-            : 'acho que não tem'
+            : day?.note || 'acho que não tem'
           const inner = (
             <>
               <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
               <span className="week-num">{d.getDate()}</span>
             </>
           )
-          return has && day?.instagram ? (
+          return day?.instagram ? (
             <a
               key={key}
               className={cls}

@@ -251,7 +251,7 @@ export default function AdminScreen() {
               const isSelected = key === selectedDay
               const cls = [
                 'cal-cell',
-                day ? 'has-yes' : '',
+                day ? (day.has_palquinho ? 'has-yes' : 'has-no') : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -275,7 +275,8 @@ export default function AdminScreen() {
           </div>
           <div className="legend">
             <span className="legend-yes">SIM marcado</span>
-            <span className="legend-null">não marcado</span>
+            <span className="legend-no">NÃO marcado</span>
+            <span className="legend-null">sem marcação</span>
           </div>
         </section>
 
@@ -286,11 +287,11 @@ export default function AdminScreen() {
             {selectedDay && (
               <>
                 <p className="current-status">
-                  {selected ? 'marcado: palquinho SIM 🎉' : 'ainda não marcado'}
+                  {selected ? (selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO com nota/anúncio 🙅') : 'ainda não marcado'}
                 </p>
                 <textarea
                   className="textarea"
-                  placeholder="nota (opcional) — ex.: 'na casa do Bruno'"
+                  placeholder="nota (opcional) — ex.: 'na casa do Bruno' ou 'show do X sem palquinho'"
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
                   rows={2}
@@ -306,6 +307,9 @@ export default function AdminScreen() {
                 <div className="panel-actions">
                   <button className="btn yes-btn" onClick={() => setDay(true)} disabled={busy}>
                     marcar SIM
+                  </button>
+                  <button className="btn no-btn" onClick={() => setDay(false)} disabled={busy}>
+                    marcar NÃO
                   </button>
                 </div>
                 {selected && (
