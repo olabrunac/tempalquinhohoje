@@ -560,3 +560,52 @@ body {
 .modal .modal-sub {
   color: #9ca3af;
 }
+
+/* ---- faixa semanal no rodapé ---- */
+
+.week {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0 1rem 6.5rem;
+}
+
+.week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.week-day.yes {
+  background: var(--green);
+}
+
+.week-day.no {
+  background: var(--red);
+}
+
+.week-day.today {
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.week-day.past {
+  opacity: 0.4;
+}
+
+.week-dow {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.week-num {
+  font-size: 1.1rem;
+  line-height: 1;
+}
