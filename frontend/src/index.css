@@ -843,6 +843,8 @@ body {
   gap: 0.35rem;
   justify-items: center;
   align-items: center;
+  max-width: 400px;
+  margin: 0 auto;
   padding: 0 0.75rem 2.5rem;
 }
 
