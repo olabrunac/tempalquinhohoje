@@ -32,12 +32,9 @@ body {
   transition: background 0.3s ease;
 }
 
-.screen.yes {
-  background: linear-gradient(180deg, var(--green-soft), #bbf7d0);
-}
-
+.screen.yes,
 .screen.no {
-  background: linear-gradient(180deg, var(--red-soft), #fecaca);
+  background: #000;
 }
 
 .screen.unknown,
@@ -72,6 +69,18 @@ body {
   color: var(--ink);
 }
 
+.screen.yes .date-line,
+.screen.no .date-line,
+.screen.yes .admin-link,
+.screen.no .admin-link {
+  color: #9ca3af;
+}
+
+.screen.yes .admin-link:hover,
+.screen.no .admin-link:hover {
+  color: #fff;
+}
+
 .logout:hover {
   color: var(--red);
 }
@@ -95,12 +104,10 @@ body {
 
 .screen.yes .big-answer {
   color: var(--green);
-  text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.08);
 }
 
 .screen.no .big-answer {
   color: var(--red);
-  text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.08);
 }
 
 .screen.unknown .big-answer {
@@ -134,14 +141,14 @@ body {
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  background: var(--ink);
-  color: #fff;
+  background: #fff;
+  color: #000;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 
 .corner-suggest:hover {
-  filter: brightness(1.15);
+  filter: brightness(0.9);
   transform: scale(1.03);
 }
 
@@ -149,8 +156,8 @@ body {
   position: fixed;
   right: 1.25rem;
   bottom: 1.25rem;
-  background: var(--ink);
-  color: #fff;
+  background: #fff;
+  color: #000;
   border-radius: 999px;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
