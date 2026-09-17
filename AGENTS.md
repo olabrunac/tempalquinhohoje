@@ -1,7 +1,7 @@
 # temPalquinhoHoje — Diretrizes para Agente
 
 ## O que é
-Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gigante (verde)** ou **NÃO gigante (vermelho)** respondendo se HOJE tem palquinho (a festa do grupo). **O default é NÃO**: só muda quando o admin marca o dia. Quem souber de um palquinho manda uma sugestão (data + organizador); o **admin confirma** ou **descarta** no painel.
+Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gigante (verde)** ou **NÃO gigante (vermelho)** respondendo se HOJE tem palquinho (a festa do grupo). **O default é NÃO**: só muda quando o admin marca o dia. Quem souber de um palquinho manda uma sugestão (data + organizador + Instagram opcional); o **admin confirma** ou **descarta** no painel.
 
 ## Fluxo Operacional
 - **PowerShell 5.1**: NUNCA use `&&`. Use `; if ($?) { cmd2 }`.
@@ -12,38 +12,49 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 ## Arquitetura
 - **Monorepo**: `backend/` (FastAPI + SQLAlchemy), `frontend/` (Vite React + TS), `api/index.py` (adaptador serverless que importa o app FastAPI).
 - **Deploy Vercel**: `vercel.json` na raiz — build do frontend (`cd frontend && npm ci && npm run build`, output `frontend/dist`) + função Python `api/index.py`; `requirements.txt` na raiz para as deps da função. Env vars em Produção: `DATABASE_URL` (Neon) e `ADMIN_PASSWORD`.
-- **Banco**: SQLite (`backend/tempalquinhohoje.db`) em dev; **PostgreSQL (Neon)** em produção. `create_all` no boot (`backend/app/db.py init_db`).
+- **Banco**: SQLite (`backend/tempalquinhohoje.db`) em dev; **PostgreSQL (Neon)** em produção. `create_all` no boot (`backend/app/db.py init_db`) + `_ensure_column()` para migrações leves de coluna nova.
 - **Tabelas** (`backend/app/models.py`):
-  - `palquinho_day` — `day` (Date, PK), `has_palquinho` (bool), `note` (texto opcional), `updated_at`.
-  - `palquinho_suggestion` — `id`, `day`, `organizer` (quem o amigo acha que organiza), `instagram` (link do anúncio, opcional), `status` (`pending`/`solved`), `created_at`.
+  - `palquinho_day` — `day` (Date, PK), `has_palquinho` (bool), `note` (texto opcional), `instagram` (link do anúncio, opcional), `updated_at`.
+  - `palquinho_suggestion` — `id`, `day`, `organizer`, `instagram`, `status` (`pending`/`solved`), `action` (`confirm`/`dismiss`, quando resolvida), `solved_at`, `created_at`.
   - `day_log` — auditoria: quem marcou/desmarcou o dia.
-- **Endpoints** (`backend/app/api/palquinho.py`, prefixo `/api/v1`):
-  - `GET /today` → `{ day, has_palquinho: bool|null, note }` (null = não marcado → front mostra NÃO).
+  - `visit` — uma linha por visita à tela inicial (`day`, `created_at`); **visitas do admin não contam**.
+- **Endpoints** (`backend/app/api/palquinho.py` + `visits.py`, prefixo `/api/v1`):
+  - `GET /today` → `{ day, has_palquinho: bool|null, note, instagram }` (null = não marcado → front mostra NÃO).
   - `GET /days` → todos os dias já marcados.
+  - `POST /visits` → conta visita (não conta se vier com `X-Admin-Key` de admin).
   - `POST /suggestions` `{ day, organizer, instagram? }` → sugestão anônima de amigo (público).
   - Admin (header `X-Admin-Key` = `ADMIN_PASSWORD`):
-    - `GET /admin/suggestions` → sugestões pendentes com o estado atual do dia.
-    - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, note? }` → marca o dia e resolve a sugestão.
-    - `DELETE /admin/suggestions/{id}` → descarta a sugestão sem marcar.
-    - `PUT /admin/{day}` `{ has_palquinho, note }` → marca o dia.
+    - `GET /admin/suggestions` → pendentes (default); `?status=solved` lista o arquivo (histórico, com `action` e `solved_at`).
+    - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, note?, instagram? }` → marca o dia e resolve a sugestão (action=confirm).
+    - `DELETE /admin/suggestions/{id}` → descarta a sugestão (action=dismiss).
+    - `PUT /admin/{day}` `{ has_palquinho, note?, instagram? }` → marca SIM **ou NÃO** (upsert).
     - `DELETE /admin/{day}` → desmarca o dia.
+    - `GET /admin/visits` → `{ today, total, days[31] }` de visitas (não-admin) dos últimos 30 dias.
 - **Settings** (`backend/app/settings.py`): `DATABASE_URL`, `ADMIN_PASSWORD` via pydantic-settings (env da Vercel em prod).
-- **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`.
+- **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`; inclui routers `palquinho` e `visits`.
 
 ## Importante (comportamento)
-- **Default do dia = NÃO**: na tela principal, `has_palquinho` null vira NÃO vermelho. Só o admin muda isso marcando o dia como SIM.
-- **Sem "marcar NÃO" no admin**: não existe botão de NÃO — todo dia não marcado como SIM já é NÃO automaticamente. O admin só marca SIM ou remove a marcação.
+- **Default do dia = NÃO**: na tela principal, `has_palquinho` null vira NÃO vermelho.
+- **Admin marca SIM ou NÃO**: o admin pode marcar explicitamente **NÃO** (com nota + link do Instagram) pra anunciar outro grande evento no dia — vetor `has_palquinho=false`. Fora isso, não-marcado já é NÃO automaticamente.
+- **Visitas**: contam só quem abre a tela inicial sem ser admin (front pula quando há a chave de admin no localStorage **e** o backend ignora requisições com `X-Admin-Key`).
+- **Sugestões arquivam**: confirmada ou descartada vai pro **arquivo** (`status=solved`, com `action confirm/dismiss` + `solved_at`) — o admin confere o histórico antes de soltar o link.
 - **Nada de votação**: sugestão serve pra *informar* o admin (data + organizador), não pra votar SIM/NÃO.
-- No calendário do admin, dia sem marcação é neutro na grade (não marcado = NÃO, mas sem destaque na grade).
+- **Calendário do admin**: verde = SIM marcado, contorno vermelho = NÃO marcado (com nota/link), neutro = sem marcação.
+- **Feedback visual**: confete arco-íris atrás do SIM quando tem palquinho; favicon ✅/❌ conforme o dia.
+
+## Frontend (comportamento)
+- **Tela inicial**: SIM/NÃO gigante, data acima, faixa da semana atual no rodapé (dias verdes/vermelhos; hover mostra a nota, clique abre o Instagram), nota + botão "ver anúncio no instagram ↗" (SIM ou NÃO anunciado), botão "sabe de algum palquinho?" + link "admin" no canto superior direito.
+- **Sugestão**: modal com **mini calendário** (navegável, dias passados bloqueados, dia escolhido em verde) + organizador + Instagram opcional.
+- **Admin**: login com senha, calendário mensal, painel do dia (SIM/NÃO/remover), sugestões com abas **pendentes / arquivo**, e painel de **visitas** colapsável abaixo do calendário.
+- **Mini calendário no modal e calendário do admin**: semana começa no domingo.
 
 ## Pendências / Backlog
-- **Opcional**: lista dos próximos dias já marcados na tela principal.
+- **Opcional**: print no README (falta uma screenshot do resultado).
 - **Opcional**: domínio customizado no Vercel.
-- **README** com print do resultado — repo público (falta o print).
 
 ## Convenções
 - **Campo do domínio**: `has_palquinho` (bool) — mesmo no frontend.
-- **Status de sugestão**: `pending` / `solved` — mesmo no frontend.
+- **Status de sugestão**: `pending` / `solved`; **action**: `confirm` / `dismiss` — mesmo no frontend.
 - **Sem framework CSS pesado** — app pequeno, CSS puro já basta.
 - **Tema escuro no site inteiro** (main + admin + modal); na tela principal só o SIM/NÃO é colorido (verde/vermelho) sobre fundo preto.
 - **Rápido e simples**: prioridade é destravar. Não hiperpensar.
