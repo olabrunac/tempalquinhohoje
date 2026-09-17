@@ -23,7 +23,7 @@ def get_today(db: Session = Depends(get_db)):
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
         return schemas.TodayOut(day=today)
-    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note)
+    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
 
 
 @router.get("/days", response_model=list[schemas.DayOut])
