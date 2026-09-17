@@ -117,12 +117,24 @@ export default function AdminScreen() {
     }
   }
 
-  const confirmSuggestion = async (day: string, has: boolean) => {
+  const confirmSuggestion = async (id: number, has: boolean) => {
     setBusy(true)
     setFeedback('')
     try {
-      await api.setDay(day, has, null, adminKey)
-      setSelectedDay(null)
+      await api.confirmSuggestion(id, has, adminKey)
+      await refresh()
+    } catch (e) {
+      setFeedback(e instanceof Error ? e.message : 'deu ruim')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const dismissSuggestion = async (id: number) => {
+    setBusy(true)
+    setFeedback('')
+    try {
+      await api.dismissSuggestion(id, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -161,7 +173,7 @@ export default function AdminScreen() {
               autoFocus
             />
             {loginError && <p className="error">{loginError}</p>}
-            <button className="btn vote-btn" type="submit" disabled={busy}>
+            <button className="btn primary-btn" type="submit" disabled={busy}>
               entrar
             </button>
           </form>
@@ -289,30 +301,26 @@ export default function AdminScreen() {
             <h3 className="panel-title">sugestões dos amigos ({suggestions.length})</h3>
             {suggestions.length === 0 && <p className="muted">nenhuma sugestão pendente. </p>}
             <ul className="suggestions">
-              {suggestions.map((s) => {
-                const yes = s.votes.filter((v) => v.vote).length
-                const no = s.votes.length - yes
-                return (
-                  <li key={s.day} className="suggestion">
-                    <div className="suggestion-info">
-                      <span className="suggestion-day">{fmtPt(s.day)}</span>
-                      <span className="suggestion-votes">
-                        <span className="tag-yes">{yes}× SIM</span>
-                        <span className="tag-no">{no}× NÃO</span>
-                        {s.votes.slice(0, 6).map((v) => v.name).join(', ')}
-                      </span>
-                    </div>
-                    <div className="suggestion-actions">
-                      <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.day, true)} disabled={busy}>
-                        confirmar SIM
-                      </button>
-                      <button className="btn no-btn small" onClick={() => confirmSuggestion(s.day, false)} disabled={busy}>
-                        confirmar NÃO
-                      </button>
-                    </div>
-                  </li>
-                )
-              })}
+              {suggestions.map((s) => (
+                <li key={s.id} className="suggestion">
+                  <div className="suggestion-info">
+                    <span className="suggestion-day">{fmtPt(s.day)}</span>
+                    <span className="suggestion-organizer">organiza: {s.organizer}</span>
+                    {s.name && <span className="muted">via {s.name}</span>}
+                  </div>
+                  <div className="suggestion-actions">
+                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.id, true)} disabled={busy}>
+                      confirmar SIM
+                    </button>
+                    <button className="btn no-btn small" onClick={() => confirmSuggestion(s.id, false)} disabled={busy}>
+                      confirmar NÃO
+                    </button>
+                    <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>
+                      descartar
+                    </button>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </section>

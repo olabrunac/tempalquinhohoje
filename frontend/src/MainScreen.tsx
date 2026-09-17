@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, type TodayOut } from './api'
-import VoteModal from './VoteModal'
+import SuggestionModal from './SuggestionModal'
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -14,8 +14,8 @@ function fmtDay(day: string): string {
 export default function MainScreen() {
   const [today, setToday] = useState<TodayOut | null>(null)
   const [error, setError] = useState('')
-  const [showVote, setShowVote] = useState(false)
-  const [voted, setVoted] = useState(false)
+  const [showSuggestion, setShowSuggestion] = useState(false)
+  const [thankYou, setThankYou] = useState(false)
 
   useEffect(() => {
     api
@@ -24,16 +24,13 @@ export default function MainScreen() {
       .catch((e: Error) => setError(e.message))
   }, [])
 
-  const has = today?.has_palquinho ?? null
-  const statusClass = has === null ? 'unknown' : has ? 'yes' : 'no'
-  const big = has === null ? '?' : has ? 'SIM' : 'NÃO'
+  const hasPalquinho = today?.has_palquinho ?? false
+  const loading = !today && !error
 
   return (
-    <div className={`screen ${statusClass}`}>
+    <div className={`screen ${hasPalquinho ? 'yes' : 'no'}`}>
       <header className="topbar">
-        <span className="date-line">
-          {today ? fmtDay(today.day) : 'carregando...'}
-        </span>
+        {today ? <span className="date-line">{fmtDay(today.day)}</span> : <span />}
         <Link className="admin-link" to="/admin">
           admin
         </Link>
@@ -45,34 +42,30 @@ export default function MainScreen() {
         </main>
       ) : (
         <main className="mid">
-          <h1 className="big-answer">{big}</h1>
-
-          {has === null && (
-            <div className="unset-box">
-              <p className="unset-text">
-                hoje <strong>ainda não foi marcado</strong>.
-              </p>
-              {voted ? (
-                <p className="unset-text ok">voto enviado, valeu! 🎉</p>
-              ) : (
-                <button className="btn vote-btn" onClick={() => setShowVote(true)}>
-                  acho que sim — votar
-                </button>
-              )}
-            </div>
+          {!loading && (
+            <>
+              <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
+              {today?.note && <p className="note">{today.note}</p>}
+            </>
           )}
-
-          {today?.note && <p className="note">{today.note}</p>}
         </main>
       )}
 
-      {showVote && today && (
-        <VoteModal
-          day={today.day}
-          onClose={() => setShowVote(false)}
-          onVoted={() => {
-            setShowVote(false)
-            setVoted(true)
+      {thankYou ? (
+        <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
+      ) : (
+        <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
+          sabe de algum palquinho? ✨
+        </button>
+      )}
+
+      {showSuggestion && (
+        <SuggestionModal
+          onClose={() => setShowSuggestion(false)}
+          onSent={() => {
+            setShowSuggestion(false)
+            setThankYou(true)
+            setTimeout(() => setThankYou(false), 5000)
           }}
         />
       )}

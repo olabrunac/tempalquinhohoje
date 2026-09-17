@@ -18,18 +18,20 @@ class TodayOut(BaseModel):
     note: str | None = None
 
 
-class VoteIn(BaseModel):
+class SuggestionIn(BaseModel):
     day: date
-    name: str
-    vote: bool
+    organizer: str
+    name: str | None = None
 
 
-class VoteOut(BaseModel):
+class SuggestionOut(BaseModel):
     id: int
     day: date
-    name: str
-    vote: bool
+    organizer: str
+    name: str | None = None
+    status: str
     created_at: datetime
+    has_palquinho: bool | None = None  # estado atual do dia (ajuda o admin)
 
     class Config:
         from_attributes = True
@@ -38,9 +40,3 @@ class VoteOut(BaseModel):
 class DaySetIn(BaseModel):
     has_palquinho: bool
     note: str | None = None
-
-
-class SuggestionOut(BaseModel):
-    day: date
-    has_palquinho: bool | None = None  # None = ainda não confirmado
-    votes: list[VoteOut]

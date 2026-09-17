@@ -10,18 +10,20 @@ export interface DayOut {
   note?: string | null
 }
 
-export interface VoteOut {
+export interface SuggestionOut {
   id: number
   day: string
-  name: string
-  vote: boolean
+  organizer: string
+  name?: string | null
+  status: string
   created_at: string
+  has_palquinho?: boolean | null
 }
 
-export interface SuggestionOut {
+export interface SuggestionIn {
   day: string
-  has_palquinho?: boolean | null
-  votes: VoteOut[]
+  organizer: string
+  name?: string | null
 }
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
@@ -53,9 +55,8 @@ function jsonHeaders(extra?: HeadersInit): HeadersInit {
 export const api = {
   getToday: () => request<TodayOut>('/today'),
   getDays: () => request<DayOut[]>('/days'),
-  getVotes: (day: string) => request<VoteOut[]>(`/votes/${day}`),
-  vote: (payload: { day: string; name: string; vote: boolean }) =>
-    request<VoteOut>('/vote', {
+  suggest: (payload: SuggestionIn) =>
+    request<SuggestionOut>('/suggestions', {
       method: 'POST',
       headers: jsonHeaders(),
       body: JSON.stringify(payload),
@@ -73,6 +74,17 @@ export const api = {
     }),
   getSuggestions: (adminKey: string) =>
     request<SuggestionOut[]>('/admin/suggestions', {
+      headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
+    }),
+  confirmSuggestion: (id: number, has_palquinho: boolean, adminKey: string) =>
+    request<DayOut>(`/admin/suggestions/${id}/confirm`, {
+      method: 'POST',
+      headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
+      body: JSON.stringify({ has_palquinho }),
+    }),
+  dismissSuggestion: (id: number, adminKey: string) =>
+    request<void>(`/admin/suggestions/${id}`, {
+      method: 'DELETE',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
 }

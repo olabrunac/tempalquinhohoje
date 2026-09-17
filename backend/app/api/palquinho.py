@@ -32,22 +32,14 @@ def list_days(db: Session = Depends(get_db)):
     return db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
 
 
-@router.get("/votes/{day}", response_model=list[schemas.VoteOut])
-def list_votes(day: str, db: Session = Depends(get_db)):
-    """Votos dos amigos para um dia (ordenação por data do voto)."""
-    return db.query(models.PalquinhoVote).filter(models.PalquinhoVote.day == date.fromisoformat(day)).order_by(models.PalquinhoVote.created_at).all()
-
-
-@router.post("/vote", response_model=schemas.VoteOut, status_code=status.HTTP_201_CREATED)
-def vote(payload: schemas.VoteIn, db: Session = Depends(get_db)):
-    """Amigo chuta SIM/NÃO. Um voto por pessoa por dia (upsert)."""
-    existing = db.query(models.PalquinhoVote).filter_by(day=payload.day, name=payload.name).first()
-    if existing:
-        existing.vote = payload.vote
-        db.commit()
-        db.refresh(existing)
-        return existing
-    row = models.PalquinhoVote(day=payload.day, name=payload.name, vote=payload.vote)
+@router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
+def create_suggestion(payload: schemas.SuggestionIn, db: Session = Depends(get_db)):
+    """Amigo manda uma sugestão: 'dia X tem palquinho, organizador Y'."""
+    row = models.PalquinhoSuggestion(
+        day=payload.day,
+        organizer=payload.organizer,
+        name=payload.name,
+    )
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -82,21 +74,59 @@ def unset_day(day: str, db: Session = Depends(get_db)):
 
 @router.get("/admin/suggestions", response_model=list[schemas.SuggestionOut], dependencies=[Depends(require_admin)])
 def list_suggestions(db: Session = Depends(get_db)):
-    """Sugestões dos amigos: dias com voto que o admin ainda não confirmou."""
-    days_with_votes = [
-        d for (d,) in db.query(models.PalquinhoVote.day).distinct().all()
-    ]
-    marked_days = {d.day for d in db.query(models.PalquinhoDay).all()}
-    result = []
-    for d in days_with_votes:
-        if d in marked_days:
-            continue
-        votes = (
-            db.query(models.PalquinhoVote)
-            .filter(models.PalquinhoVote.day == d)
-            .order_by(models.PalquinhoVote.created_at)
-            .all()
+    """Sugestões pendentes dos amigos, com o estado atual do dia."""
+    pending = (
+        db.query(models.PalquinhoSuggestion)
+        .filter(models.PalquinhoSuggestion.status == "pending")
+        .order_by(models.PalquinhoSuggestion.day)
+        .all()
+    )
+    marked = {d.day: d.has_palquinho for d in db.query(models.PalquinhoDay).all()}
+    return [
+        schemas.SuggestionOut(
+            id=s.id,
+            day=s.day,
+            organizer=s.organizer,
+            name=s.name,
+            status=s.status,
+            created_at=s.created_at,
+            has_palquinho=marked.get(s.day),
         )
-        result.append(schemas.SuggestionOut(day=d, votes=votes))
-    result.sort(key=lambda s: s.day)
-    return result
+        for s in pending
+    ]
+
+
+@router.post(
+    "/admin/suggestions/{suggestion_id}/confirm",
+    response_model=schemas.DayOut,
+    dependencies=[Depends(require_admin)],
+)
+def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
+    """Admin confirma a sugestão: marca o dia e resolve a sugestão."""
+    sug = db.get(models.PalquinhoSuggestion, suggestion_id)
+    if sug is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
+    row = db.query(models.PalquinhoDay).filter_by(day=sug.day).first()
+    if row is None:
+        row = models.PalquinhoDay(day=sug.day)
+        db.add(row)
+    row.has_palquinho = payload.has_palquinho
+    row.note = payload.note
+    sug.status = "solved"
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.delete(
+    "/admin/suggestions/{suggestion_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
+)
+def dismiss_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
+    """Admin descarta a sugestão sem marcar o dia."""
+    sug = db.get(models.PalquinhoSuggestion, suggestion_id)
+    if sug is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
+    sug.status = "solved"
+    db.commit()
