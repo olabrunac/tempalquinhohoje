@@ -57,7 +57,7 @@ export default function MainScreen() {
   const hasPalquinho = today?.has_palquinho ?? false
   const loading = !today && !error
 
-  const dayMap = new Map(days.map((d) => [d.day, d.has_palquinho]))
+  const dayMap = new Map(days.map((d) => [d.day, d]))
   const todayIso = iso(new Date())
   const week = currentWeek()
 
@@ -95,16 +95,42 @@ export default function MainScreen() {
       <footer className="week">
         {week.map((d) => {
           const key = iso(d)
-          const has = dayMap.get(key) ?? false
+          const day = dayMap.get(key)
+          const has = day?.has_palquinho ?? false
           const isToday = key === todayIso
           const isPast = key < todayIso
-          const cls = ['week-day', has ? 'yes' : 'no', isToday ? 'today' : '', isPast ? 'past' : '']
+          const cls = [
+            'week-day',
+            has ? 'yes' : 'no',
+            isToday ? 'today' : '',
+            isPast ? 'past' : '',
+            has && day?.instagram ? 'clickable' : '',
+          ]
             .filter(Boolean)
             .join(' ')
-          return (
-            <div key={key} className={cls}>
+          const title = has
+            ? day?.note || (day?.instagram ? 'ver anúncio no instagram ↗' : 'tem palquinho! 🎉')
+            : undefined
+          const inner = (
+            <>
               <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
               <span className="week-num">{d.getDate()}</span>
+            </>
+          )
+          return has && day?.instagram ? (
+            <a
+              key={key}
+              className={cls}
+              href={day.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={title}
+            >
+              {inner}
+            </a>
+          ) : (
+            <div key={key} className={cls} title={title}>
+              {inner}
             </div>
           )
         })}

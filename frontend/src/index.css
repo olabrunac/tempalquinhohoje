@@ -619,6 +619,21 @@ body {
   border-radius: 12px;
   font-weight: 700;
   color: #fff;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.week-day.clickable {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.week-day.clickable:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1);
+}
+
+.week-day.clickable:active {
+  transform: scale(0.96);
 }
 
 .week-day.yes {
