@@ -34,11 +34,11 @@ def list_days(db: Session = Depends(get_db)):
 
 @router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
 def create_suggestion(payload: schemas.SuggestionIn, db: Session = Depends(get_db)):
-    """Amigo manda uma sugestão: 'dia X tem palquinho, organizador Y'."""
+    """Amigo manda uma sugestão anônima: 'dia X tem palquinho, organizador Y'."""
     row = models.PalquinhoSuggestion(
         day=payload.day,
         organizer=payload.organizer,
-        name=payload.name,
+        instagram=payload.instagram,
     )
     db.add(row)
     db.commit()
@@ -87,7 +87,7 @@ def list_suggestions(db: Session = Depends(get_db)):
             id=s.id,
             day=s.day,
             organizer=s.organizer,
-            name=s.name,
+            instagram=s.instagram,
             status=s.status,
             created_at=s.created_at,
             has_palquinho=marked.get(s.day),

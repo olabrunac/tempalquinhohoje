@@ -36,7 +36,7 @@ Admin: `http://localhost:5173/admin` (senha = `ADMIN_PASSWORD`).
 |---|---|---|
 | GET | `/api/v1/today` | Tem palquinho hoje? (null = não marcado → site mostra NÃO) |
 | GET | `/api/v1/days` | Dias já marcados |
-| POST | `/api/v1/suggestions` | Amigo manda sugestão `{ day, organizer, name? }` |
+| POST | `/api/v1/suggestions` | Amigo manda sugestão anônima `{ day, organizer, instagram? }` |
 | GET | `/api/v1/admin/suggestions` | Sugestões pendentes (header `X-Admin-Key`) |
 | POST | `/api/v1/admin/suggestions/{id}/confirm` | Confirma a sugestão e marca o dia |
 | DELETE | `/api/v1/admin/suggestions/{id}` | Descarta a sugestão sem marcar |
@@ -46,6 +46,6 @@ Admin: `http://localhost:5173/admin` (senha = `ADMIN_PASSWORD`).
 
 ## Fluxo
 1. O amigo abre o site e vê o status de hoje: **SIM gigante verde** ou **NÃO gigante vermelho** (default NÃO).
-2. Botão discreto no canto — *"sabe de algum palquinho?"* — manda data + organizador como sugestão.
+2. Botão discreto no canto — *"sabe de algum palquinho?"* — manda data + organizador (anonimamente, com link do anúncio no Instagram opcional) como sugestão.
 3. No `/admin`, o admin vê as sugestões pendentes, confirma (marca o dia) ou descarta, e também marca dias direto no calendário (com nota opcional).
 4. Confirmou = tela principal atualiza.

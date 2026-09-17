@@ -17,13 +17,13 @@ class PalquinhoDay(Base):
 
 
 class PalquinhoSuggestion(Base):
-    """Sugestão de amigo: 'tal dia tem palquinho' com quem acha que organiza."""
+    """Sugestão anônima de amigo: 'tal dia tem palquinho' com quem organiza e link do anúncio."""
     __tablename__ = "palquinho_suggestion"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     day: Mapped[date] = mapped_column(Date, index=True)
     organizer: Mapped[str] = mapped_column(String(80))
-    name: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
     status: Mapped[str] = mapped_column(String(10), default="pending")  # pending / solved
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

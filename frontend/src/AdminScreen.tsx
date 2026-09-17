@@ -306,7 +306,16 @@ export default function AdminScreen() {
                   <div className="suggestion-info">
                     <span className="suggestion-day">{fmtPt(s.day)}</span>
                     <span className="suggestion-organizer">organiza: {s.organizer}</span>
-                    {s.name && <span className="muted">via {s.name}</span>}
+                    {s.instagram && (
+                      <a
+                        className="suggestion-instagram"
+                        href={s.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        ver anúncio no instagram ↗
+                      </a>
+                    )}
                   </div>
                   <div className="suggestion-actions">
                     <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.id, true)} disabled={busy}>

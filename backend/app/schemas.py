@@ -21,14 +21,14 @@ class TodayOut(BaseModel):
 class SuggestionIn(BaseModel):
     day: date
     organizer: str
-    name: str | None = None
+    instagram: str | None = None
 
 
 class SuggestionOut(BaseModel):
     id: int
     day: date
     organizer: str
-    name: str | None = None
+    instagram: str | None = None
     status: str
     created_at: datetime
     has_palquinho: bool | None = None  # estado atual do dia (ajuda o admin)

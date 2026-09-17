@@ -14,7 +14,7 @@ export interface SuggestionOut {
   id: number
   day: string
   organizer: string
-  name?: string | null
+  instagram?: string | null
   status: string
   created_at: string
   has_palquinho?: boolean | null
@@ -23,7 +23,7 @@ export interface SuggestionOut {
 export interface SuggestionIn {
   day: string
   organizer: string
-  name?: string | null
+  instagram?: string | null
 }
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'

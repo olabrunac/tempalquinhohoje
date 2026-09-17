@@ -12,9 +12,9 @@ function todayIso(): string {
 }
 
 export default function SuggestionModal({ onClose, onSent }: Props) {
-  const [name, setName] = useState('')
   const [day, setDay] = useState(todayIso())
   const [organizer, setOrganizer] = useState('')
+  const [instagram, setInstagram] = useState('')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -30,7 +30,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
     }
     setSending(true)
     try {
-      await api.suggest({ day, organizer: organizer.trim(), name: name.trim() || null })
+      await api.suggest({ day, organizer: organizer.trim(), instagram: instagram.trim() || null })
       onSent()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'deu ruim')
@@ -42,17 +42,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">sabe de algum palquinho?</h2>
-        <p className="modal-sub">manda a data e quem tu imagina que vai organizar</p>
-        <input
-          className="input"
-          type="text"
-          placeholder="teu nome (opcional)"
-          maxLength={40}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={sending}
-          autoFocus
-        />
+        <p className="modal-sub">anônimo — manda a data e quem tu imagina que vai organizar</p>
         <input
           className="input"
           type="date"
@@ -67,6 +57,16 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
           maxLength={80}
           value={organizer}
           onChange={(e) => setOrganizer(e.target.value)}
+          disabled={sending}
+          autoFocus
+        />
+        <input
+          className="input"
+          type="text"
+          placeholder="link do instagram do anúncio (opcional)"
+          maxLength={300}
+          value={instagram}
+          onChange={(e) => setInstagram(e.target.value)}
           disabled={sending}
         />
         {error && <p className="error">{error}</p>}

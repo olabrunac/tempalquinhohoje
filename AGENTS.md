@@ -15,12 +15,12 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Banco**: SQLite (`backend/tempalquinhohoje.db`) em dev; **PostgreSQL (Neon)** em produção. `create_all` no boot (`backend/app/db.py init_db`).
 - **Tabelas** (`backend/app/models.py`):
   - `palquinho_day` — `day` (Date, PK), `has_palquinho` (bool), `note` (texto opcional), `updated_at`.
-  - `palquinho_suggestion` — `id`, `day`, `organizer` (quem o amigo acha que organiza), `name` (opcional, quem sugeriu), `status` (`pending`/`solved`), `created_at`.
+  - `palquinho_suggestion` — `id`, `day`, `organizer` (quem o amigo acha que organiza), `instagram` (link do anúncio, opcional), `status` (`pending`/`solved`), `created_at`.
   - `day_log` — auditoria: quem marcou/desmarcou o dia.
 - **Endpoints** (`backend/app/api/palquinho.py`, prefixo `/api/v1`):
   - `GET /today` → `{ day, has_palquinho: bool|null, note }` (null = não marcado → front mostra NÃO).
   - `GET /days` → todos os dias já marcados.
-  - `POST /suggestions` `{ day, organizer, name? }` → sugestão de amigo (público).
+  - `POST /suggestions` `{ day, organizer, instagram? }` → sugestão anônima de amigo (público).
   - Admin (header `X-Admin-Key` = `ADMIN_PASSWORD`):
     - `GET /admin/suggestions` → sugestões pendentes com o estado atual do dia.
     - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, note? }` → marca o dia e resolve a sugestão.
@@ -44,4 +44,5 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Campo do domínio**: `has_palquinho` (bool) — mesmo no frontend.
 - **Status de sugestão**: `pending` / `solved` — mesmo no frontend.
 - **Sem framework CSS pesado** — app pequeno, CSS puro já basta.
+- **Tema escuro no site inteiro** (main + admin + modal); na tela principal só o SIM/NÃO é colorido (verde/vermelho) sobre fundo preto.
 - **Rápido e simples**: prioridade é destravar. Não hiperpensar.

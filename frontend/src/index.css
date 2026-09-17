@@ -479,3 +479,93 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- tema escuro (admin + modal) ---- */
+
+.screen.unknown {
+  background: #0a0a0a;
+}
+
+.screen.admin {
+  background: #0a0a0a;
+}
+
+.screen.admin .calendar-grid,
+.screen.admin .panel,
+.screen.admin .login-card {
+  background: #141414;
+  border-color: #2a2a2a;
+}
+
+.screen.admin .cal-cell {
+  color: #e5e7eb;
+}
+
+.screen.admin .cal-cell:hover {
+  background: #1f2937;
+}
+
+.screen.admin .cal-weekday,
+.screen.admin .legend {
+  color: #9ca3af;
+}
+
+.screen.admin .panel-title,
+.screen.admin .current-status,
+.screen.admin .login-title,
+.screen.admin .suggestion-day {
+  color: #f3f4f6;
+}
+
+.screen.admin .input,
+.screen.admin .textarea,
+.modal .input {
+  background: #0a0a0a;
+  border-color: #2a2a2a;
+  color: #f3f4f6;
+}
+
+.screen.admin .btn.ghost,
+.modal .btn.ghost {
+  color: #9ca3af;
+  border-color: #2a2a2a;
+}
+
+.screen.admin .btn.ghost:hover,
+.modal .btn.ghost:hover {
+  color: #fff;
+  border-color: #4b5563;
+}
+
+.screen.admin .primary-btn {
+  background: #e5e7eb;
+  color: #0a0a0a;
+}
+
+.screen.admin .suggestion {
+  border-color: #2a2a2a;
+}
+
+.screen.admin .suggestion-organizer,
+.screen.admin .muted {
+  color: #9ca3af;
+}
+
+.suggestion-instagram {
+  font-size: 0.85rem;
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.suggestion-instagram:hover {
+  text-decoration: underline;
+}
+
+.modal {
+  background: #141414;
+  color: #f3f4f6;
+}
+
+.modal .modal-sub {
+  color: #9ca3af;
+}
