@@ -21,5 +21,4 @@ só muda quando o admin marca o dia. Quem souber de um palquinho manda uma suges
 - **Admin** (`/admin`):
   - calendário mensal pra marcar **SIM** ou **NÃO** (com nota e link) e desmarcar;
   - sugestões com abas **pendentes / arquivo** (histórico com confirmada ✓ / descartada ✗);
-  - **contador de visitas** (abaixo do calendário, colapsável) — **visitas do admin não contam**.
 - Tema escuro em todo o site.
