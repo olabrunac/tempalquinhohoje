@@ -301,7 +301,7 @@ export default function AdminScreen() {
           </div>
 
           <div className="panel">
-            <h3 className="panel-title">sugestões dos amigos ({suggestions.length})</h3>
+            <h3 className="panel-title">sugestões ({suggestions.length})</h3>
             {suggestions.length === 0 && <p className="muted">nenhuma sugestão pendente. </p>}
             <ul className="suggestions">
               {suggestions.map((s) => (
