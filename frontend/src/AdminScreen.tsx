@@ -117,11 +117,11 @@ export default function AdminScreen() {
     }
   }
 
-  const confirmSuggestion = async (id: number, has: boolean) => {
+  const confirmSuggestion = async (id: number) => {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(id, has, adminKey)
+      await api.confirmSuggestion(id, true, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -231,7 +231,7 @@ export default function AdminScreen() {
               const isSelected = key === selectedDay
               const cls = [
                 'cal-cell',
-                day ? (day.has_palquinho ? 'has-yes' : 'has-no') : '',
+                day ? 'has-yes' : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -254,7 +254,6 @@ export default function AdminScreen() {
           </div>
           <div className="legend">
             <span className="legend-yes">SIM marcado</span>
-            <span className="legend-no">NÃO marcado</span>
             <span className="legend-null">não marcado</span>
           </div>
         </section>
@@ -262,15 +261,11 @@ export default function AdminScreen() {
         <section className="panel-col">
           <div className="panel">
             <h3 className="panel-title">{selectedDay ? fmtPt(selectedDay) : 'clica num dia'}</h3>
-            {!selectedDay && <p className="muted">clica num dia do calendário pra marcar SIM ou NÃO (ou remover).</p>}
+            {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
                 <p className="current-status">
-                  {selected
-                    ? selected.has_palquinho
-                      ? 'hoje marcou: SIM 🎉'
-                      : 'hoje marcou: NÃO 😴'
-                    : 'ainda não marcado'}
+                  {selected ? 'marcado: palquinho SIM 🎉' : 'ainda não marcado'}
                 </p>
                 <textarea
                   className="textarea"
@@ -282,9 +277,6 @@ export default function AdminScreen() {
                 <div className="panel-actions">
                   <button className="btn yes-btn" onClick={() => setDay(true)} disabled={busy}>
                     marcar SIM
-                  </button>
-                  <button className="btn no-btn" onClick={() => setDay(false)} disabled={busy}>
-                    marcar NÃO
                   </button>
                 </div>
                 {selected && (
@@ -318,11 +310,8 @@ export default function AdminScreen() {
                     )}
                   </div>
                   <div className="suggestion-actions">
-                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.id, true)} disabled={busy}>
+                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.id)} disabled={busy}>
                       confirmar SIM
-                    </button>
-                    <button className="btn no-btn small" onClick={() => confirmSuggestion(s.id, false)} disabled={busy}>
-                      confirmar NÃO
                     </button>
                     <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>
                       descartar

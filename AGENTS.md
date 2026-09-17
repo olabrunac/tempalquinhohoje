@@ -31,9 +31,10 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`.
 
 ## Importante (comportamento)
-- **Default do dia = NÃO**: na tela principal, `has_palquinho` null vira NÃO vermelho. Só o admin muda isso marcando o dia.
+- **Default do dia = NÃO**: na tela principal, `has_palquinho` null vira NÃO vermelho. Só o admin muda isso marcando o dia como SIM.
+- **Sem "marcar NÃO" no admin**: não existe botão de NÃO — todo dia não marcado como SIM já é NÃO automaticamente. O admin só marca SIM ou remove a marcação.
 - **Nada de votação**: sugestão serve pra *informar* o admin (data + organizador), não pra votar SIM/NÃO.
-- No calendário do admin, dia sem marcação é neutro na grade (para distinguir de NÃO marcado explicitamente).
+- No calendário do admin, dia sem marcação é neutro na grade (não marcado = NÃO, mas sem destaque na grade).
 
 ## Pendências / Backlog
 - **Opcional**: lista dos próximos dias já marcados na tela principal.
