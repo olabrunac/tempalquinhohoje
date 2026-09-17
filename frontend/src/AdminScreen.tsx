@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, ApiError, type DayOut, type SuggestionOut } from './api'
+import { api, ADMIN_KEY, ApiError, type DayOut, type SuggestionOut, type VisitsAdminOut } from './api'
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
-const ADMIN_KEY = 'tph_admin_key'
 
 function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -13,6 +12,11 @@ function iso(d: Date): string {
 function fmtPt(day: string): string {
   const [y, m, d] = day.split('-').map(Number)
   return `${d} de ${MONTHS[m - 1]} de ${y}`
+}
+
+function fmtShort(day: string): string {
+  const [, m, d] = day.split('-').map(Number)
+  return `${d} ${MONTHS[m - 1].slice(0, 3)}`
 }
 
 function buildCells(year: number, month: number): (Date | null)[] {
@@ -34,6 +38,7 @@ export default function AdminScreen() {
   const [month, setMonth] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [days, setDays] = useState<DayOut[]>([])
   const [suggestions, setSuggestions] = useState<SuggestionOut[]>([])
+  const [visits, setVisits] = useState<VisitsAdminOut | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
   const [instagramDraft, setInstagramDraft] = useState('')
@@ -41,9 +46,14 @@ export default function AdminScreen() {
   const [feedback, setFeedback] = useState('')
 
   const loadData = useCallback(async (key: string) => {
-    const [dayRows, sugRows] = await Promise.all([api.getDays(), api.getSuggestions(key)])
+    const [dayRows, sugRows, visitRows] = await Promise.all([
+      api.getDays(),
+      api.getSuggestions(key),
+      api.getVisits(key),
+    ])
     setDays(dayRows)
     setSuggestions(sugRows)
+    setVisits(visitRows)
   }, [])
 
   useEffect(() => {
@@ -81,6 +91,7 @@ export default function AdminScreen() {
     setAdminKey('')
     setDays([])
     setSuggestions([])
+    setVisits(null)
     setSelectedDay(null)
   }
 
@@ -188,6 +199,8 @@ export default function AdminScreen() {
   const cells = buildCells(month.year, month.month)
   const selected = selectedDay ? dayMap.get(selectedDay) : undefined
   const todayIso = iso(now)
+  const visitDays = visits?.days.slice(-14) ?? []
+  const visitMax = Math.max(1, ...visitDays.map((v) => v.count))
 
   const nav = (delta: number) => {
     const next = new Date(month.year, month.month + delta, 1)
@@ -298,6 +311,38 @@ export default function AdminScreen() {
               </>
             )}
             {feedback && <p className="error">{feedback}</p>}
+          </div>
+
+          <div className="panel">
+            <h3 className="panel-title">visitas</h3>
+            {visits ? (
+              <>
+                <div className="visit-stats">
+                  <span className="visit-stat">
+                    <strong>{visits.today}</strong> hoje
+                  </span>
+                  <span className="visit-stat">
+                    <strong>{visits.total}</strong> total
+                  </span>
+                </div>
+                <ul className="visit-days">
+                  {visitDays.map((v) => (
+                    <li key={v.day} className="visit-day">
+                      <span className="visit-day-label">{fmtShort(v.day)}</span>
+                      <span className="visit-day-bar">
+                        <span
+                          className="visit-day-fill"
+                          style={{ width: `${(v.count / visitMax) * 100}%` }}
+                        />
+                      </span>
+                      <span className="visit-day-count">{v.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="muted">carregando...</p>
+            )}
           </div>
 
           <div className="panel">

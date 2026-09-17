@@ -38,3 +38,12 @@ class DayLog(Base):
     action: Mapped[str] = mapped_column(String(10))  # set / unset
     has_palquinho: Mapped[bool | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Visit(Base):
+    """Visitante (não-admin) que abriu a tela inicial."""
+    __tablename__ = "visit"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

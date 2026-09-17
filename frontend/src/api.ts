@@ -28,6 +28,19 @@ export interface SuggestionIn {
   instagram?: string | null
 }
 
+export interface VisitDayOut {
+  day: string
+  count: number
+}
+
+export interface VisitsAdminOut {
+  total: number
+  today: number
+  days: VisitDayOut[]
+}
+
+export const ADMIN_KEY = 'tph_admin_key'
+
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
 
 export class ApiError extends Error {
@@ -76,6 +89,15 @@ export const api = {
     }),
   getSuggestions: (adminKey: string) =>
     request<SuggestionOut[]>('/admin/suggestions', {
+      headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
+    }),
+  registerVisit: () =>
+    request<{ ok: boolean }>('/visits', {
+      method: 'POST',
+      headers: jsonHeaders(),
+    }),
+  getVisits: (adminKey: string) =>
+    request<VisitsAdminOut>('/admin/visits', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
   confirmSuggestion: (id: number, has_palquinho: boolean, instagram: string | null, adminKey: string) =>

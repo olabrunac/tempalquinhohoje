@@ -43,3 +43,14 @@ class DaySetIn(BaseModel):
     has_palquinho: bool
     note: str | None = None
     instagram: str | None = None
+
+
+class VisitDayOut(BaseModel):
+    day: date
+    count: int
+
+
+class VisitsAdminOut(BaseModel):
+    total: int
+    today: int
+    days: list[VisitDayOut]

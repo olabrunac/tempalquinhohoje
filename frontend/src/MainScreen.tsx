@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { api, type DayOut, type TodayOut } from './api'
+import { api, ADMIN_KEY, type DayOut, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import SuggestionModal from './SuggestionModal'
 
@@ -44,6 +44,9 @@ export default function MainScreen() {
   const [thankYou, setThankYou] = useState(false)
 
   useEffect(() => {
+    if (!localStorage.getItem(ADMIN_KEY)) {
+      api.registerVisit().catch(() => {})
+    }
     Promise.all([api.getToday(), api.getDays()])
       .then(([t, d]) => {
         setToday(t)

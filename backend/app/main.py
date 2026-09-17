@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .db import init_db
-from .api import palquinho
+from .api import palquinho, visits
 
 app = FastAPI(title="temPalquinhoHoje", version="0.1.0")
 
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(palquinho.router, prefix="/api/v1", tags=["palquinho"])
+app.include_router(visits.router, prefix="/api/v1", tags=["visits"])
 
 
 @app.on_event("startup")

@@ -603,6 +603,64 @@ body {
   text-decoration: underline;
 }
 
+/* ---- visitas ---- */
+
+.visit-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.visit-stat {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.visit-stat strong {
+  display: block;
+  font-size: 1.6rem;
+  color: #f3f4f6;
+}
+
+.visit-days {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.visit-day {
+  display: grid;
+  grid-template-columns: 58px 1fr 34px;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.visit-day-label {
+  color: #9ca3af;
+  text-transform: capitalize;
+}
+
+.visit-day-bar {
+  height: 10px;
+  background: #2a2a2a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.visit-day-fill {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  border-radius: 999px;
+}
+
+.visit-day-count {
+  text-align: right;
+  color: #e5e7eb;
+}
+
 .modal {
   background: #141414;
   color: #f3f4f6;
