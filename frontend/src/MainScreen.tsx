@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import confetti from 'canvas-confetti'
 import { api, type DayOut, type TodayOut } from './api'
+import { setFavicon } from './favicon'
 import SuggestionModal from './SuggestionModal'
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
@@ -27,6 +29,13 @@ function currentWeek(): Date[] {
   })
 }
 
+function fireConfetti() {
+  const colors = ['#16a34a', '#22c55e', '#86efac', '#ffffff', '#facc15']
+  const defaults = { spread: 70, ticks: 220, gravity: 1, startVelocity: 45, colors } as const
+  void confetti({ ...defaults, particleCount: 140, origin: { x: 0.2, y: 0.7 } })
+  void confetti({ ...defaults, particleCount: 140, origin: { x: 0.8, y: 0.7 } })
+}
+
 export default function MainScreen() {
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
@@ -39,6 +48,8 @@ export default function MainScreen() {
       .then(([t, d]) => {
         setToday(t)
         setDays(d)
+        setFavicon(t.has_palquinho === true)
+        if (t.has_palquinho === true) fireConfetti()
       })
       .catch((e: Error) => setError(e.message))
   }, [])
