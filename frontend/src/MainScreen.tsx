@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { api, ADMIN_KEY, type DayOut, type TodayOut } from './api'
+import { api, readHomeCache, writeHomeCache, ADMIN_KEY, type DayOut, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import SuggestionModal from './SuggestionModal'
 
@@ -53,6 +53,7 @@ function fitWeekGap(el: HTMLElement) {
 
 export default function MainScreen() {
   const weekRef = useRef<HTMLElement>(null)
+  const confettiFired = useRef(false)
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
@@ -72,14 +73,32 @@ export default function MainScreen() {
     if (!localStorage.getItem(ADMIN_KEY)) {
       api.registerVisit().catch(() => {})
     }
-    Promise.all([api.getToday(), api.getDays()])
-      .then(([t, d]) => {
+    const day = iso(new Date())
+    const cached = readHomeCache(day)
+    if (cached) {
+      setToday(cached.today)
+      setDays(cached.days)
+      setFavicon(cached.today.has_palquinho === true)
+      if (cached.today.has_palquinho === true && !confettiFired.current) {
+        confettiFired.current = true
+        fireConfetti()
+      }
+    }
+    api
+      .fetchHome()
+      .then(({ today: t, days: d }) => {
         setToday(t)
         setDays(d)
         setFavicon(t.has_palquinho === true)
-        if (t.has_palquinho === true) fireConfetti()
+        if (t.has_palquinho === true && !confettiFired.current) {
+          confettiFired.current = true
+          fireConfetti()
+        }
+        writeHomeCache(day, { today: t, days: d })
       })
-      .catch((e: Error) => setError(e.message))
+      .catch((e: Error) => {
+        if (!cached) setError(e.message)
+      })
   }, [])
 
   const hasPalquinho = today?.has_palquinho ?? false

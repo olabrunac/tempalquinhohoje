@@ -43,6 +43,43 @@ export interface VisitsAdminOut {
 
 export const ADMIN_KEY = 'tph_admin_key'
 
+export interface HomePayload {
+  today: TodayOut
+  days: DayOut[]
+}
+
+const HOME_CACHE_KEY = 'tph_home_cache'
+const HOME_CACHE_TTL_MS = 30 * 60 * 1000
+const HOME_CACHE_VERSION = 1
+
+interface HomeCache extends HomePayload {
+  v: number
+  day: string
+  ts: number
+}
+
+export function readHomeCache(day: string): HomePayload | null {
+  try {
+    const raw = localStorage.getItem(HOME_CACHE_KEY)
+    if (!raw) return null
+    const c = JSON.parse(raw) as HomeCache
+    if (c.v !== HOME_CACHE_VERSION || c.day !== day) return null
+    if (Date.now() - c.ts > HOME_CACHE_TTL_MS) return null
+    return { today: c.today, days: c.days }
+  } catch {
+    return null
+  }
+}
+
+export function writeHomeCache(day: string, payload: HomePayload): void {
+  try {
+    const c: HomeCache = { v: HOME_CACHE_VERSION, day, ts: Date.now(), ...payload }
+    localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(c))
+  } catch {
+    // storage indisponível — segue sem cache
+  }
+}
+
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
 
 export class ApiError extends Error {
@@ -70,6 +107,8 @@ function jsonHeaders(extra?: HeadersInit): HeadersInit {
 }
 
 export const api = {
+  fetchHome: (): Promise<HomePayload> =>
+    Promise.all([api.getToday(), api.getDays()]).then(([today, days]) => ({ today, days })),
   getToday: () => request<TodayOut>('/today'),
   getDays: () => request<DayOut[]>('/days'),
   suggest: (payload: SuggestionIn) =>
