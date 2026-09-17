@@ -838,14 +838,13 @@ body {
 /* ---- faixa semanal no rodapé ---- */
 
 .week {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.35rem;
-  justify-items: center;
-  align-items: center;
-  max-width: 400px;
+  max-width: 460px;
   margin: 0 auto;
-  padding: 0 0.75rem 2.5rem;
+  padding: 0 1rem 2.5rem;
 }
 
 .week-day {
@@ -854,9 +853,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.1rem;
-  width: 100%;
-  max-width: 52px;
-  aspect-ratio: 1;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   font-weight: 700;
   color: #fff;
