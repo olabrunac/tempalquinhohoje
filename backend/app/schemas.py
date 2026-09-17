@@ -38,3 +38,9 @@ class VoteOut(BaseModel):
 class DaySetIn(BaseModel):
     has_palquinho: bool
     note: str | None = None
+
+
+class SuggestionOut(BaseModel):
+    day: date
+    has_palquinho: bool | None = None  # None = ainda não confirmado
+    votes: list[VoteOut]
