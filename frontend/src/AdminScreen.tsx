@@ -203,7 +203,7 @@ export default function AdminScreen() {
 
   if (checking) {
     return (
-      <div className="screen">
+      <div className="screen admin">
         <main className="mid">
           <p>carregando...</p>
         </main>
@@ -213,7 +213,7 @@ export default function AdminScreen() {
 
   if (!adminKey) {
     return (
-      <div className="screen">
+      <div className="screen admin">
         <header className="topbar">
           <Link className="admin-link" to="/">
             voltar
