@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { api, ADMIN_KEY, type DayOut, type TodayOut } from './api'
@@ -36,12 +36,37 @@ function fireConfetti() {
   void confetti({ ...defaults, particleCount: 140, origin: { x: 0.8, y: 0.7 } })
 }
 
+const WEEK_CHIP = 52
+const WEEK_GAP_TARGET = 5.6 // 0.35rem — gap definido no CSS
+
+function fitWeekGap(el: HTMLElement) {
+  const style = getComputedStyle(el)
+  const content = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+  const totalChips = 7 * WEEK_CHIP
+  if (totalChips + 6 * WEEK_GAP_TARGET <= content) {
+    el.style.removeProperty('gap')
+    return
+  }
+  const gap = Math.max(1, Math.floor((content - totalChips) / 6))
+  el.style.gap = `${gap}px`
+}
+
 export default function MainScreen() {
+  const weekRef = useRef<HTMLElement>(null)
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
+
+  useEffect(() => {
+    const week = weekRef.current
+    if (!week) return
+    const apply = () => fitWeekGap(week)
+    apply()
+    window.addEventListener('resize', apply)
+    return () => window.removeEventListener('resize', apply)
+  }, [])
 
   useEffect(() => {
     if (!localStorage.getItem(ADMIN_KEY)) {
@@ -92,7 +117,7 @@ export default function MainScreen() {
         </main>
       )}
 
-      <footer className="week">
+      <footer className="week" ref={weekRef}>
         {week.map((d) => {
           const key = iso(d)
           const day = dayMap.get(key)
