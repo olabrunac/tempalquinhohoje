@@ -2,12 +2,14 @@ export interface TodayOut {
   day: string
   has_palquinho: boolean | null
   note?: string | null
+  instagram?: string | null
 }
 
 export interface DayOut {
   day: string
   has_palquinho: boolean
   note?: string | null
+  instagram?: string | null
 }
 
 export interface SuggestionOut {
@@ -61,11 +63,11 @@ export const api = {
       headers: jsonHeaders(),
       body: JSON.stringify(payload),
     }),
-  setDay: (day: string, has_palquinho: boolean, note: string | null, adminKey: string) =>
+  setDay: (day: string, has_palquinho: boolean, note: string | null, instagram: string | null, adminKey: string) =>
     request<DayOut>(`/admin/${day}`, {
       method: 'PUT',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-      body: JSON.stringify({ has_palquinho, note }),
+      body: JSON.stringify({ has_palquinho, note, instagram }),
     }),
   unsetDay: (day: string, adminKey: string) =>
     request<void>(`/admin/${day}`, {
@@ -76,11 +78,11 @@ export const api = {
     request<SuggestionOut[]>('/admin/suggestions', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
-  confirmSuggestion: (id: number, has_palquinho: boolean, adminKey: string) =>
+  confirmSuggestion: (id: number, has_palquinho: boolean, instagram: string | null, adminKey: string) =>
     request<DayOut>(`/admin/suggestions/${id}/confirm`, {
       method: 'POST',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-      body: JSON.stringify({ has_palquinho }),
+      body: JSON.stringify({ has_palquinho, instagram }),
     }),
   dismissSuggestion: (id: number, adminKey: string) =>
     request<void>(`/admin/suggestions/${id}`, {

@@ -65,6 +65,16 @@ export default function MainScreen() {
           {!loading && (
             <>
               <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
+              {today?.instagram && hasPalquinho && (
+                <a
+                  className="event-insta"
+                  href={today.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ver anúncio no instagram ↗
+                </a>
+              )}
               {today?.note && <p className="note">{today.note}</p>}
             </>
           )}

@@ -58,6 +58,7 @@ def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
         db.add(row)
     row.has_palquinho = payload.has_palquinho
     row.note = payload.note
+    row.instagram = payload.instagram
     db.commit()
     db.refresh(row)
     return row
@@ -112,6 +113,7 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
         db.add(row)
     row.has_palquinho = payload.has_palquinho
     row.note = payload.note
+    row.instagram = payload.instagram
     sug.status = "solved"
     db.commit()
     db.refresh(row)

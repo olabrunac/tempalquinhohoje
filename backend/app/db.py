@@ -24,15 +24,16 @@ def init_db() -> None:
     from . import models  # noqa: F401  (registra as tabelas no metadata)
 
     Base.metadata.create_all(bind=engine)
-    _ensure_suggestion_instagram()
+    _ensure_column("palquinho_suggestion", "instagram", "VARCHAR(300)")
+    _ensure_column("palquinho_day", "instagram", "VARCHAR(300)")
 
 
-def _ensure_suggestion_instagram() -> None:
-    """Migração leve: garante a coluna `instagram` em `palquinho_suggestion`."""
+def _ensure_column(table: str, column: str, ddl_type: str) -> None:
+    """Migração leve: adiciona a coluna se ainda não existir."""
     from sqlalchemy import text
 
     try:
         with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE palquinho_suggestion ADD COLUMN instagram VARCHAR(300)"))
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl_type}"))
     except Exception:
         pass  # coluna já existe

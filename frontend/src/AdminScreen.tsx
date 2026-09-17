@@ -36,6 +36,7 @@ export default function AdminScreen() {
   const [suggestions, setSuggestions] = useState<SuggestionOut[]>([])
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
+  const [instagramDraft, setInstagramDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState('')
 
@@ -86,6 +87,7 @@ export default function AdminScreen() {
   const refresh = async () => {
     await loadData(adminKey)
     setNoteDraft('')
+    setInstagramDraft('')
     setSelectedDay(null)
   }
 
@@ -94,7 +96,7 @@ export default function AdminScreen() {
     setBusy(true)
     setFeedback('')
     try {
-      await api.setDay(selectedDay, has, noteDraft.trim() || null, adminKey)
+      await api.setDay(selectedDay, has, noteDraft.trim() || null, instagramDraft.trim() || null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -117,11 +119,11 @@ export default function AdminScreen() {
     }
   }
 
-  const confirmSuggestion = async (id: number) => {
+  const confirmSuggestion = async (s: SuggestionOut) => {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(id, true, adminKey)
+      await api.confirmSuggestion(s.id, true, s.instagram ?? null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -244,6 +246,7 @@ export default function AdminScreen() {
                   onClick={() => {
                     setSelectedDay(key)
                     setNoteDraft(day?.note ?? '')
+                    setInstagramDraft(day?.instagram ?? '')
                     setFeedback('')
                   }}
                 >
@@ -273,6 +276,14 @@ export default function AdminScreen() {
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
                   rows={2}
+                />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="link do instagram do anúncio (opcional)"
+                  value={instagramDraft}
+                  onChange={(e) => setInstagramDraft(e.target.value)}
+                  maxLength={300}
                 />
                 <div className="panel-actions">
                   <button className="btn yes-btn" onClick={() => setDay(true)} disabled={busy}>
@@ -310,7 +321,7 @@ export default function AdminScreen() {
                     )}
                   </div>
                   <div className="suggestion-actions">
-                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s.id)} disabled={busy}>
+                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s)} disabled={busy}>
                       confirmar SIM
                     </button>
                     <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>

@@ -7,6 +7,7 @@ class DayOut(BaseModel):
     day: date
     has_palquinho: bool
     note: str | None = None
+    instagram: str | None = None
 
     class Config:
         from_attributes = True
@@ -16,6 +17,7 @@ class TodayOut(BaseModel):
     day: date
     has_palquinho: bool | None = None  # None = não marcado ainda
     note: str | None = None
+    instagram: str | None = None
 
 
 class SuggestionIn(BaseModel):
@@ -40,3 +42,4 @@ class SuggestionOut(BaseModel):
 class DaySetIn(BaseModel):
     has_palquinho: bool
     note: str | None = None
+    instagram: str | None = None

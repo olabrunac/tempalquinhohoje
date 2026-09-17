@@ -129,6 +129,20 @@ body {
   border-radius: 999px;
 }
 
+.event-insta {
+  font-size: 1rem;
+  color: #fff;
+  background: #1d4ed8;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+}
+
+.event-insta:hover {
+  background: #2563eb;
+}
+
 /* ---- sugestão no canto ---- */
 
 .corner-nav {
