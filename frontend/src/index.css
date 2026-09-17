@@ -76,6 +76,12 @@ body {
   color: #9ca3af;
 }
 
+.screen.yes .topbar,
+.screen.no .topbar {
+  justify-content: center;
+  padding: 1rem 5rem;
+}
+
 .screen.yes .admin-link:hover,
 .screen.no .admin-link:hover {
   color: #fff;
