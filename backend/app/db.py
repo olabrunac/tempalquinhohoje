@@ -26,6 +26,8 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_column("palquinho_suggestion", "instagram", "VARCHAR(300)")
     _ensure_column("palquinho_day", "instagram", "VARCHAR(300)")
+    _ensure_column("palquinho_suggestion", "action", "VARCHAR(10)")
+    _ensure_column("palquinho_suggestion", "solved_at", "TIMESTAMP")
 
 
 def _ensure_column(table: str, column: str, ddl_type: str) -> None:

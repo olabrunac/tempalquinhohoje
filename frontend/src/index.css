@@ -510,6 +510,47 @@ body {
   flex-wrap: wrap;
 }
 
+.panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seg {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.seg-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seg-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.suggestion-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.suggestion-badge.confirmed {
+  color: var(--green);
+}
+
+.suggestion-badge.dismissed {
+  color: var(--red);
+}
+
 @media (max-width: 820px) {
   .admin-body {
     grid-template-columns: 1fr;

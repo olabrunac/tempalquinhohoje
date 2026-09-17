@@ -17,7 +17,9 @@ export interface SuggestionOut {
   day: string
   organizer: string
   instagram?: string | null
-  status: string
+  status: 'pending' | 'solved'
+  action?: 'confirm' | 'dismiss' | null
+  solved_at?: string | null
   created_at: string
   has_palquinho?: boolean | null
 }
@@ -87,8 +89,8 @@ export const api = {
       method: 'DELETE',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
-  getSuggestions: (adminKey: string) =>
-    request<SuggestionOut[]>('/admin/suggestions', {
+  getSuggestions: (adminKey: string, status?: 'pending' | 'solved') =>
+    request<SuggestionOut[]>(`/admin/suggestions${status ? `?status=${status}` : ''}`, {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
   registerVisit: () =>

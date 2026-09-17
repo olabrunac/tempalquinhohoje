@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -74,14 +74,17 @@ def unset_day(day: str, db: Session = Depends(get_db)):
 
 
 @router.get("/admin/suggestions", response_model=list[schemas.SuggestionOut], dependencies=[Depends(require_admin)])
-def list_suggestions(db: Session = Depends(get_db)):
-    """Sugestões pendentes dos amigos, com o estado atual do dia."""
-    pending = (
-        db.query(models.PalquinhoSuggestion)
-        .filter(models.PalquinhoSuggestion.status == "pending")
-        .order_by(models.PalquinhoSuggestion.day)
-        .all()
-    )
+def list_suggestions(status: str | None = Query(default="pending"), db: Session = Depends(get_db)):
+    """Sugestões: 'pending' (padrão), 'solved' (arquivo) — com o estado atual do dia."""
+    q = db.query(models.PalquinhoSuggestion)
+    if status == "solved":
+        q = q.filter(models.PalquinhoSuggestion.status == "solved").order_by(
+            models.PalquinhoSuggestion.solved_at.desc()
+        )
+    else:
+        q = q.filter(models.PalquinhoSuggestion.status == "pending").order_by(
+            models.PalquinhoSuggestion.day
+        )
     marked = {d.day: d.has_palquinho for d in db.query(models.PalquinhoDay).all()}
     return [
         schemas.SuggestionOut(
@@ -90,10 +93,12 @@ def list_suggestions(db: Session = Depends(get_db)):
             organizer=s.organizer,
             instagram=s.instagram,
             status=s.status,
+            action=s.action,
+            solved_at=s.solved_at,
             created_at=s.created_at,
             has_palquinho=marked.get(s.day),
         )
-        for s in pending
+        for s in q.all()
     ]
 
 
@@ -115,6 +120,8 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
     row.note = payload.note
     row.instagram = payload.instagram
     sug.status = "solved"
+    sug.action = "confirm"
+    sug.solved_at = datetime.now()
     db.commit()
     db.refresh(row)
     return row
@@ -131,4 +138,6 @@ def dismiss_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
     if sug is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
     sug.status = "solved"
+    sug.action = "dismiss"
+    sug.solved_at = datetime.now()
     db.commit()

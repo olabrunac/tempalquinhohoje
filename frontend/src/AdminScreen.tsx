@@ -38,6 +38,8 @@ export default function AdminScreen() {
   const [month, setMonth] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [days, setDays] = useState<DayOut[]>([])
   const [suggestions, setSuggestions] = useState<SuggestionOut[]>([])
+  const [suggestionArchive, setSuggestionArchive] = useState<SuggestionOut[]>([])
+  const [suggestionTab, setSuggestionTab] = useState<'pending' | 'archive'>('pending')
   const [visits, setVisits] = useState<VisitsAdminOut | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
@@ -46,13 +48,15 @@ export default function AdminScreen() {
   const [feedback, setFeedback] = useState('')
 
   const loadData = useCallback(async (key: string) => {
-    const [dayRows, sugRows, visitRows] = await Promise.all([
+    const [dayRows, sugRows, solvedRows, visitRows] = await Promise.all([
       api.getDays(),
-      api.getSuggestions(key),
+      api.getSuggestions(key, 'pending'),
+      api.getSuggestions(key, 'solved'),
       api.getVisits(key),
     ])
     setDays(dayRows)
     setSuggestions(sugRows)
+    setSuggestionArchive(solvedRows)
     setVisits(visitRows)
   }, [])
 
@@ -91,6 +95,7 @@ export default function AdminScreen() {
     setAdminKey('')
     setDays([])
     setSuggestions([])
+    setSuggestionArchive([])
     setVisits(null)
     setSelectedDay(null)
   }
@@ -346,36 +351,84 @@ export default function AdminScreen() {
           </div>
 
           <div className="panel">
-            <h3 className="panel-title">sugestões ({suggestions.length})</h3>
-            {suggestions.length === 0 && <p className="muted">nenhuma sugestão pendente. </p>}
-            <ul className="suggestions">
-              {suggestions.map((s) => (
-                <li key={s.id} className="suggestion">
-                  <div className="suggestion-info">
-                    <span className="suggestion-day">{fmtPt(s.day)}</span>
-                    <span className="suggestion-organizer">organiza: {s.organizer}</span>
-                    {s.instagram && (
-                      <a
-                        className="suggestion-instagram"
-                        href={s.instagram}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        ver anúncio no instagram ↗
-                      </a>
-                    )}
-                  </div>
-                  <div className="suggestion-actions">
-                    <button className="btn yes-btn small" onClick={() => confirmSuggestion(s)} disabled={busy}>
-                      confirmar SIM
-                    </button>
-                    <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>
-                      descartar
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="panel-head">
+              <h3 className="panel-title">sugestões</h3>
+              <div className="seg">
+                <button
+                  className={`seg-btn ${suggestionTab === 'pending' ? 'active' : ''}`}
+                  onClick={() => setSuggestionTab('pending')}
+                >
+                  pendentes ({suggestions.length})
+                </button>
+                <button
+                  className={`seg-btn ${suggestionTab === 'archive' ? 'active' : ''}`}
+                  onClick={() => setSuggestionTab('archive')}
+                >
+                  arquivo ({suggestionArchive.length})
+                </button>
+              </div>
+            </div>
+            {suggestionTab === 'pending' ? (
+              suggestions.length === 0 ? (
+                <p className="muted">nenhuma sugestão pendente.</p>
+              ) : (
+                <ul className="suggestions">
+                  {suggestions.map((s) => (
+                    <li key={s.id} className="suggestion">
+                      <div className="suggestion-info">
+                        <span className="suggestion-day">{fmtPt(s.day)}</span>
+                        <span className="suggestion-organizer">organiza: {s.organizer}</span>
+                        {s.instagram && (
+                          <a
+                            className="suggestion-instagram"
+                            href={s.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            ver anúncio no instagram ↗
+                          </a>
+                        )}
+                      </div>
+                      <div className="suggestion-actions">
+                        <button className="btn yes-btn small" onClick={() => confirmSuggestion(s)} disabled={busy}>
+                          confirmar SIM
+                        </button>
+                        <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>
+                          descartar
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )
+            ) : suggestionArchive.length === 0 ? (
+              <p className="muted">nada arquivado ainda.</p>
+            ) : (
+              <ul className="suggestions">
+                {suggestionArchive.map((s) => (
+                  <li key={s.id} className="suggestion">
+                    <div className="suggestion-info">
+                      <span className="suggestion-day">{fmtPt(s.day)}</span>
+                      <span className="suggestion-organizer">organiza: {s.organizer}</span>
+                      {s.instagram && (
+                        <a
+                          className="suggestion-instagram"
+                          href={s.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          ver anúncio no instagram ↗
+                        </a>
+                      )}
+                      <span className={`suggestion-badge ${s.action === 'confirm' ? 'confirmed' : 'dismissed'}`}>
+                        {s.action === 'confirm' ? '✓ confirmada' : '✗ descartada'}
+                        {s.solved_at ? ` · ${fmtShort(s.solved_at.slice(0, 10))}` : ''}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       </main>

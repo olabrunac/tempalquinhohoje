@@ -32,6 +32,8 @@ class SuggestionOut(BaseModel):
     organizer: str
     instagram: str | None = None
     status: str
+    action: str | None = None  # confirm / dismiss (só quando resolvida)
+    solved_at: datetime | None = None
     created_at: datetime
     has_palquinho: bool | None = None  # estado atual do dia (ajuda o admin)
 

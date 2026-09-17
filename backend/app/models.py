@@ -26,6 +26,8 @@ class PalquinhoSuggestion(Base):
     organizer: Mapped[str] = mapped_column(String(80))
     instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
     status: Mapped[str] = mapped_column(String(10), default="pending")  # pending / solved
+    action: Mapped[str | None] = mapped_column(String(10), nullable=True)  # confirm / dismiss
+    solved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
