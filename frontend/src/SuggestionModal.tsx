@@ -6,17 +6,45 @@ interface Props {
   onSent: () => void
 }
 
-function todayIso(): string {
-  const d = new Date()
+const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
+const WEEKDAYS_FULL = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
+const WEEKDAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+
+function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function buildCells(year: number, month: number): (Date | null)[] {
+  const first = new Date(year, month, 1)
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const cells: (Date | null)[] = []
+  for (let i = 0; i < first.getDay(); i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d))
+  return cells
+}
+
+function fmtDay(day: string): string {
+  const [y, m, d] = day.split('-').map(Number)
+  return `${WEEKDAYS_FULL[new Date(y, m - 1, d).getDay()]}, ${d} de ${MONTHS[m - 1]}`
+}
+
 export default function SuggestionModal({ onClose, onSent }: Props) {
-  const [day, setDay] = useState(todayIso())
+  const now = new Date()
+  const todayIso = iso(now)
+  const minView = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const [day, setDay] = useState(todayIso)
+  const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [organizer, setOrganizer] = useState('')
   const [instagram, setInstagram] = useState('')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
+
+  const nav = (delta: number) => {
+    const next = new Date(view.year, view.month + delta, 1)
+    if (next < minView) return
+    setView({ year: next.getFullYear(), month: next.getMonth() })
+  }
 
   const submit = async () => {
     setError('')
@@ -38,18 +66,61 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
     }
   }
 
+  const cells = buildCells(view.year, view.month)
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">sabe de algum palquinho?</h2>
         <p className="modal-sub">manda a data e quem ta organizando o rolê, bota o insta do post anunciando tbm pra gente confirmar certinho</p>
-        <input
-          className="input"
-          type="date"
-          value={day}
-          onChange={(e) => setDay(e.target.value)}
-          disabled={sending}
-        />
+
+        <div className="mini-cal">
+          <div className="mini-cal-nav">
+            <button type="button" className="btn ghost" onClick={() => nav(-1)} disabled={sending} aria-label="mês anterior">
+              ‹
+            </button>
+            <span className="mini-cal-title">
+              {MONTHS[view.month]} {view.year}
+            </span>
+            <button type="button" className="btn ghost" onClick={() => nav(1)} disabled={sending} aria-label="próximo mês">
+              ›
+            </button>
+          </div>
+          <div className="mini-cal-grid">
+            {WEEKDAYS_SHORT.map((w) => (
+              <div key={w} className="mini-cal-weekday">
+                {w}
+              </div>
+            ))}
+            {cells.map((c, i) => {
+              if (!c) return <div key={i} className="mini-cal-empty" />
+              const key = iso(c)
+              const isPast = key < todayIso
+              const isSelected = key === day
+              const cls = [
+                'mini-cal-cell',
+                isPast ? 'past' : '',
+                key === todayIso ? 'today' : '',
+                isSelected ? 'selected' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+              return (
+                <button
+                  type="button"
+                  key={key}
+                  className={cls}
+                  disabled={isPast}
+                  onClick={() => setDay(key)}
+                >
+                  {c.getDate()}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        {day && <p className="mini-cal-date">rolê em: {fmtDay(day)}</p>}
+
         <input
           className="input"
           type="text"

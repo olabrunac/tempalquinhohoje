@@ -600,6 +600,96 @@ body {
   color: #9ca3af;
 }
 
+/* ---- mini calendário do modal de sugestão ---- */
+
+.mini-cal {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mini-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.2rem;
+}
+
+.mini-cal-nav .btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mini-cal-title {
+  font-weight: 700;
+}
+
+.mini-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.mini-cal-weekday {
+  text-align: center;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+  padding: 0.25rem 0;
+}
+
+.mini-cal-empty {
+  min-height: 36px;
+}
+
+.mini-cal-cell {
+  min-height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  cursor: pointer;
+}
+
+.mini-cal-cell:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.mini-cal-cell:disabled {
+  cursor: default;
+}
+
+.mini-cal-cell.past {
+  opacity: 0.3;
+}
+
+.mini-cal-cell.today {
+  box-shadow: inset 0 0 0 2px #60a5fa;
+}
+
+.mini-cal-cell.selected {
+  background: var(--green);
+  color: #fff;
+}
+
+.mini-cal-date {
+  color: #e5e7eb;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.mini-cal-date::before {
+  content: '🎉 ';
+}
+
 /* ---- faixa semanal no rodapé ---- */
 
 .week {
