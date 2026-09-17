@@ -76,12 +76,6 @@ body {
   color: #9ca3af;
 }
 
-.screen.yes .topbar,
-.screen.no .topbar {
-  justify-content: center;
-  padding: 1rem 5rem;
-}
-
 .screen.yes .admin-link:hover,
 .screen.no .admin-link:hover {
   color: #fff;
@@ -763,11 +757,12 @@ body {
 /* ---- faixa semanal no rodapé ---- */
 
 .week {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  padding: 0 1rem 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+  justify-items: center;
+  align-items: center;
+  padding: 0 0.75rem 2.5rem;
 }
 
 .week-day {
@@ -776,8 +771,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.1rem;
-  width: 52px;
-  height: 52px;
+  width: 100%;
+  max-width: 52px;
+  aspect-ratio: 1;
   border-radius: 12px;
   font-weight: 700;
   color: #fff;

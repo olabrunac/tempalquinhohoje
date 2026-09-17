@@ -5,7 +5,7 @@ import { api, ADMIN_KEY, type DayOut, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import SuggestionModal from './SuggestionModal'
 
-const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
+const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 const WEEKDAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 
@@ -66,10 +66,6 @@ export default function MainScreen() {
 
   return (
     <div className={`screen ${hasPalquinho ? 'yes' : 'no'}`}>
-      <header className="topbar">
-        {today ? <span className="date-line">{fmtDay(today.day)}</span> : <span />}
-      </header>
-
       {error ? (
         <main className="mid">
           <p className="error">Deu ruim: {error}</p>
@@ -78,6 +74,7 @@ export default function MainScreen() {
         <main className="mid">
           {!loading && (
             <>
+              {today && <p className="date-line">{fmtDay(today.day)}</p>}
               <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
               {today?.note && <p className="note">{today.note}</p>}
               {today?.instagram && hasPalquinho && (
