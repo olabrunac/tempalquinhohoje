@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..db import get_db
+from ..localtime import today_local
 from ..settings import settings
 
 
@@ -19,7 +20,7 @@ router = APIRouter()
 @router.get("/today", response_model=schemas.TodayOut)
 def get_today(db: Session = Depends(get_db)):
     """SIM/NÃO de hoje. None se o admin ainda não marcou o dia."""
-    today = date.today()
+    today = today_local()
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
         return schemas.TodayOut(day=today)

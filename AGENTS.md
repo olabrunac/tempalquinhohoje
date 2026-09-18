@@ -37,6 +37,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 
 ## Importante (comportamento)
 - **Default do dia = NÃO**: na tela principal, `has_palquinho` null vira NÃO vermelho.
+- **"Hoje" é horário de Brasília**: o backend usa `today_local()` (`backend/app/localtime.py`, UTC-3 fixo) pra marcar dia, visita e sugestão — `date.today()` da Vercel seria UTC e erraria o dia depois das 21h.
 - **Admin marca SIM ou NÃO**: o admin pode marcar explicitamente **NÃO** (com nota + link do Instagram) pra anunciar outro grande evento no dia — vetor `has_palquinho=false`. Fora isso, não-marcado já é NÃO automaticamente.
 - **Visitas**: contam só quem abre a tela inicial sem ser admin (front pula quando há a chave de admin no localStorage **e** o backend ignora requisições com `X-Admin-Key`).
 - **Sugestões arquivam**: confirmada ou descartada vai pro **arquivo** (`status=solved`, com `action confirm/dismiss` + `solved_at`) — o admin confere o histórico antes de soltar o link.

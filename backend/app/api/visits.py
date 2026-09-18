@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Header, status
 from sqlalchemy import func
@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..api.palquinho import require_admin
 from ..db import get_db
+from ..localtime import today_local
 from ..settings import settings
 
 router = APIRouter()
@@ -17,14 +18,14 @@ def create_visit(x_admin_key: str | None = Header(default=None), db: Session = D
     """Conta uma visita à tela inicial. Visitas do próprio admin não entram na conta."""
     if x_admin_key and x_admin_key == settings.ADMIN_PASSWORD:
         return
-    db.add(models.Visit(day=date.today()))
+    db.add(models.Visit(day=today_local()))
     db.commit()
 
 
 @router.get("/admin/visits", response_model=schemas.VisitsAdminOut, dependencies=[Depends(require_admin)])
 def get_visits(db: Session = Depends(get_db)):
     """Visitas (não-admin) dos últimos 30 dias + total."""
-    today = date.today()
+    today = today_local()
     start = today - timedelta(days=30)
     rows = (
         db.query(models.Visit.day, func.count(models.Visit.id))
@@ -44,7 +45,7 @@ def get_visits(db: Session = Depends(get_db)):
 @router.get("/admin/dashboard", response_model=schemas.DashboardOut, dependencies=[Depends(require_admin)])
 def get_dashboard(db: Session = Depends(get_db)):
     """Tudo que o painel admin precisa em 1 requisição — 1 cold start só."""
-    today = date.today()
+    today = today_local()
 
     days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
     pending = (
