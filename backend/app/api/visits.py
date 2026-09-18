@@ -39,3 +39,59 @@ def get_visits(db: Session = Depends(get_db)):
         for d in (start + timedelta(days=i) for i in range(31))
     ]
     return schemas.VisitsAdminOut(total=total, today=counts.get(today, 0), days=days)
+
+
+@router.get("/admin/dashboard", response_model=schemas.DashboardOut, dependencies=[Depends(require_admin)])
+def get_dashboard(db: Session = Depends(get_db)):
+    """Tudo que o painel admin precisa em 1 requisição — 1 cold start só."""
+    today = date.today()
+
+    days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    pending = (
+        db.query(models.PalquinhoSuggestion)
+        .filter(models.PalquinhoSuggestion.status == "pending")
+        .order_by(models.PalquinhoSuggestion.day)
+        .all()
+    )
+    archive = (
+        db.query(models.PalquinhoSuggestion)
+        .filter(models.PalquinhoSuggestion.status == "solved")
+        .order_by(models.PalquinhoSuggestion.solved_at.desc())
+        .all()
+    )
+    marked = {d.day: d.has_palquinho for d in days}
+    to_out = lambda s: schemas.SuggestionOut(
+        id=s.id,
+        day=s.day,
+        organizer=s.organizer,
+        instagram=s.instagram,
+        status=s.status,
+        action=s.action,
+        solved_at=s.solved_at,
+        created_at=s.created_at,
+        has_palquinho=marked.get(s.day),
+    )
+
+    start = today - timedelta(days=30)
+    visit_rows = (
+        db.query(models.Visit.day, func.count(models.Visit.id))
+        .filter(models.Visit.day >= start)
+        .group_by(models.Visit.day)
+        .all()
+    )
+    counts = {d: c for d, c in visit_rows}
+    total = db.query(func.count(models.Visit.id)).scalar() or 0
+
+    return schemas.DashboardOut(
+        days=days,
+        pending=[to_out(s) for s in pending],
+        archive=[to_out(s) for s in archive],
+        visits=schemas.VisitsAdminOut(
+            total=total,
+            today=counts.get(today, 0),
+            days=[
+                schemas.VisitDayOut(day=d, count=counts.get(d, 0))
+                for d in (start + timedelta(days=i) for i in range(31))
+            ],
+        ),
+    )

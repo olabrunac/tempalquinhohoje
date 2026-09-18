@@ -30,6 +30,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
     - `PUT /admin/{day}` `{ has_palquinho, note?, instagram? }` → marca SIM **ou NÃO** (upsert).
     - `DELETE /admin/{day}` → desmarca o dia.
     - `GET /admin/visits` → `{ today, total, days[31] }` de visitas (não-admin) dos últimos 30 dias.
+    - `GET /admin/dashboard` → uma requisição só: `{ days, pending, archive, visits }` — o painel admin usa esse (1 cold start, não 4 requisições em paralelo).
 - **Settings** (`backend/app/settings.py`): `DATABASE_URL`, `ADMIN_PASSWORD`, `RUN_MIGRATIONS` (bool, default `true`) via pydantic-settings (env da Vercel em prod).
 - **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`; inclui routers `palquinho` e `visits`. Também tem `GET /api/v1/health` (com ping no banco) e `GET /api/cron/warmup` (SELECT 1 — pensado pra pinger externo).
 - **Cold start otimizado** (`backend/app/db.py`): `init_db()` no prod faz só um **precheck barato** (query única em `information_schema`) e pula o DDL se o schema já estiver certo. No dev (SQLite) e se houver coluna nova, roda `create_all` + `_ensure_column`. Pra desligar o init_db de vez no cold start, setar `RUN_MIGRATIONS=false` nos env da Vercel — nesse caso o schema é responsabilidade do admin (rodar com `true` quando mudar de schema).

@@ -41,6 +41,13 @@ export interface VisitsAdminOut {
   days: VisitDayOut[]
 }
 
+export interface DashboardOut {
+  days: DayOut[]
+  pending: SuggestionOut[]
+  archive: SuggestionOut[]
+  visits: VisitsAdminOut
+}
+
 export const ADMIN_KEY = 'tph_admin_key'
 
 export interface HomePayload {
@@ -139,6 +146,10 @@ export const api = {
     }),
   getVisits: (adminKey: string) =>
     request<VisitsAdminOut>('/admin/visits', {
+      headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
+    }),
+  getDashboard: (adminKey: string) =>
+    request<DashboardOut>('/admin/dashboard', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
   confirmSuggestion: (id: number, has_palquinho: boolean, instagram: string | null, adminKey: string) =>

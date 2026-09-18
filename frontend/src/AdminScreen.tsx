@@ -88,16 +88,11 @@ export default function AdminScreen() {
   const [feedback, setFeedback] = useState('')
 
   const loadData = useCallback(async (key: string) => {
-    const [dayRows, sugRows, solvedRows, visitRows] = await Promise.all([
-      api.getDays(),
-      api.getSuggestions(key, 'pending'),
-      api.getSuggestions(key, 'solved'),
-      api.getVisits(key),
-    ])
-    setDays(dayRows)
-    setSuggestions(sugRows)
-    setSuggestionArchive(solvedRows)
-    setVisits(visitRows)
+    const data = await api.getDashboard(key)
+    setDays(data.days)
+    setSuggestions(data.pending)
+    setSuggestionArchive(data.archive)
+    setVisits(data.visits)
   }, [])
 
   useEffect(() => {
