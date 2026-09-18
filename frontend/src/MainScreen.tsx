@@ -185,7 +185,7 @@ export default function MainScreen() {
           <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
         ) : (
           <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
-            sabe de algum palquinho?
+            sabe de algum? manda aí
           </button>
         )}
         <Link className="corner-admin" to="/admin">
