@@ -114,8 +114,6 @@ function jsonHeaders(extra?: HeadersInit): HeadersInit {
 }
 
 export const api = {
-  fetchHome: (): Promise<HomePayload> =>
-    Promise.all([api.getToday(), api.getDays()]).then(([today, days]) => ({ today, days })),
   getToday: () => request<TodayOut>('/today'),
   getDays: () => request<DayOut[]>('/days'),
   suggest: (payload: SuggestionIn) =>

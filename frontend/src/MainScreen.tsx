@@ -84,21 +84,34 @@ export default function MainScreen() {
         fireConfetti()
       }
     }
+    let latestToday: TodayOut | null = null
+    let latestDays: DayOut[] | null = null
+    const saveCache = () => {
+      if (latestToday && latestDays) writeHomeCache(day, { today: latestToday, days: latestDays })
+    }
     api
-      .fetchHome()
-      .then(({ today: t, days: d }) => {
+      .getToday()
+      .then((t) => {
+        latestToday = t
         setToday(t)
-        setDays(d)
         setFavicon(t.has_palquinho === true)
         if (t.has_palquinho === true && !confettiFired.current) {
           confettiFired.current = true
           fireConfetti()
         }
-        writeHomeCache(day, { today: t, days: d })
+        saveCache()
       })
       .catch((e: Error) => {
         if (!cached) setError(e.message)
       })
+    api
+      .getDays()
+      .then((d) => {
+        latestDays = d
+        setDays(d)
+        saveCache()
+      })
+      .catch(() => {})
   }, [])
 
   const hasPalquinho = today?.has_palquinho ?? false
