@@ -71,8 +71,8 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">sabe de algum? manda aí</h2>
-        <p className="modal-sub">manda a data e quem ta organizando o rolê, tbm bota o insta do post do anuncio pra facilitar a validação</p>
+        <h2 className="modal-title">sabe de algum? clica aqui</h2>
+        <p className="modal-sub">mande aqui as infos do palquinho/evento que iremos confirmar e publicar</p>
 
         <div className="mini-cal">
           <div className="mini-cal-nav">
