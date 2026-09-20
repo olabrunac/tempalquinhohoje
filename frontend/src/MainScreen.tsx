@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { api, readHomeCache, writeHomeCache, ADMIN_KEY, type DayOut, type TodayOut } from './api'
+import { api, ADMIN_KEY, type DayOut, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import SuggestionModal from './SuggestionModal'
 
@@ -73,39 +73,29 @@ export default function MainScreen() {
     if (!localStorage.getItem(ADMIN_KEY)) {
       api.registerVisit().catch(() => {})
     }
-    const day = iso(new Date())
-    const cached = readHomeCache(day)
-    if (cached) {
-      setToday(cached.today)
-      setDays(cached.days)
-      setFavicon(cached.today.has_palquinho === true)
-      if (cached.today.has_palquinho === true && !confettiFired.current) {
-        confettiFired.current = true
-        fireConfetti()
-      }
-    }
-    let latestToday: TodayOut | null = null
-    let latestDays: DayOut[] | null = null
-    const saveCache = () => {
-      if (latestToday && latestDays) writeHomeCache(day, { today: latestToday, days: latestDays })
-    }
+
+    // 1. Prioridade máxima: busca o SIM/NÃO verdadeiro de hoje imediatamente
     api
-      .getHome()
-      .then((data) => {
-        latestToday = data.today
-        latestDays = data.days
-        setToday(data.today)
-        setDays(data.days)
-        setFavicon(data.today.has_palquinho === true)
-        if (data.today.has_palquinho === true && !confettiFired.current) {
+      .getToday()
+      .then((t) => {
+        setToday(t)
+        setFavicon(t.has_palquinho === true)
+        if (t.has_palquinho === true && !confettiFired.current) {
           confettiFired.current = true
           fireConfetti()
         }
-        saveCache()
       })
       .catch((e: Error) => {
-        if (!cached) setError(e.message)
+        setError(e.message)
       })
+
+    // 2. Segunda prioridade: busca os dias da semana para o rodapé
+    api
+      .getDays()
+      .then((d) => {
+        setDays(d)
+      })
+      .catch(() => {})
   }, [])
 
   const hasPalquinho = today?.has_palquinho ?? false
