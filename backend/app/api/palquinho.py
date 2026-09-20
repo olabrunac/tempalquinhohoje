@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -18,8 +18,9 @@ router = APIRouter()
 
 
 @router.get("/today", response_model=schemas.TodayOut)
-def get_today(db: Session = Depends(get_db)):
+def get_today(response: Response, db: Session = Depends(get_db)):
     """SIM/NÃO de hoje. None se o admin ainda não marcou o dia."""
+    response.headers["Cache-Control"] = "public, s-maxage=30, stale-while-revalidate=3600"
     today = today_local()
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
@@ -28,8 +29,9 @@ def get_today(db: Session = Depends(get_db)):
 
 
 @router.get("/home", response_model=schemas.HomeOut)
-def get_home(db: Session = Depends(get_db)):
+def get_home(response: Response, db: Session = Depends(get_db)):
     """Retorna o SIM/NÃO de hoje e todos os dias marcados em 1 única requisição."""
+    response.headers["Cache-Control"] = "public, s-maxage=30, stale-while-revalidate=3600"
     today = today_local()
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     today_out = (

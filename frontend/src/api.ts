@@ -58,7 +58,6 @@ export interface HomePayload {
 export type HomeOut = HomePayload
 
 const HOME_CACHE_KEY = 'tph_home_cache'
-const HOME_CACHE_TTL_MS = 30 * 60 * 1000
 const HOME_CACHE_VERSION = 1
 
 interface HomeCache extends HomePayload {
@@ -73,7 +72,6 @@ export function readHomeCache(day: string): HomePayload | null {
     if (!raw) return null
     const c = JSON.parse(raw) as HomeCache
     if (c.v !== HOME_CACHE_VERSION || c.day !== day) return null
-    if (Date.now() - c.ts > HOME_CACHE_TTL_MS) return null
     return { today: c.today, days: c.days }
   } catch {
     return null
