@@ -100,11 +100,13 @@ export const api = {
     request<SuggestionOut[]>(`/admin/suggestions${status ? `?status=${status}` : ''}`, {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
-  registerVisit: () =>
-    request<{ ok: boolean }>('/visits', {
+  registerVisit: () => {
+    const adminKey = localStorage.getItem(ADMIN_KEY)
+    return request<{ ok: boolean }>('/visits', {
       method: 'POST',
-      headers: jsonHeaders(),
-    }),
+      headers: jsonHeaders(adminKey ? { 'X-Admin-Key': adminKey } : undefined),
+    })
+  },
   getVisits: (adminKey: string) =>
     request<VisitsAdminOut>('/admin/visits', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
