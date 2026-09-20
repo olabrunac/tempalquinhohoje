@@ -110,38 +110,37 @@ export default function MainScreen() {
 
   const hasPalquinho = today?.has_palquinho ?? false
   const loading = !today && !error
+  const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : 'no'
 
   const dayMap = new Map(days.map((d) => [d.day, d]))
   const todayIso = iso(new Date())
   const week = currentWeek()
 
   return (
-    <div className={`screen ${hasPalquinho ? 'yes' : 'no'}`}>
-      {error ? (
-        <main className="mid">
+    <div className={`screen ${screenClass}`}>
+      <main className="mid">
+        {error ? (
           <p className="error">Deu ruim: {error}</p>
-        </main>
-      ) : (
-        <main className="mid">
-          {!loading && (
-            <>
-              {today && <p className="date-line">{fmtDay(today.day)}</p>}
-              <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
-              {today?.note && <p className="note">{today.note}</p>}
-              {today?.instagram && (
-                <a
-                  className="event-insta"
-                  href={today.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ver anúncio no instagram ↗
-                </a>
-              )}
-            </>
-          )}
-        </main>
-      )}
+        ) : loading ? (
+          <h1 className="big-answer muted" style={{ opacity: 0.3 }}>...</h1>
+        ) : (
+          <>
+            {today && <p className="date-line">{fmtDay(today.day)}</p>}
+            <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
+            {today?.note && <p className="note">{today.note}</p>}
+            {today?.instagram && (
+              <a
+                className="event-insta"
+                href={today.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ver anúncio no instagram ↗
+              </a>
+            )}
+          </>
+        )}
+      </main>
 
       <footer className="week" ref={weekRef}>
         {week.map((d) => {
