@@ -55,6 +55,8 @@ export interface HomePayload {
   days: DayOut[]
 }
 
+export type HomeOut = HomePayload
+
 const HOME_CACHE_KEY = 'tph_home_cache'
 const HOME_CACHE_TTL_MS = 30 * 60 * 1000
 const HOME_CACHE_VERSION = 1
@@ -116,6 +118,7 @@ function jsonHeaders(extra?: HeadersInit): HeadersInit {
 export const api = {
   getToday: () => request<TodayOut>('/today'),
   getDays: () => request<DayOut[]>('/days'),
+  getHome: () => request<HomeOut>('/home'),
   suggest: (payload: SuggestionIn) =>
     request<SuggestionOut>('/suggestions', {
       method: 'POST',

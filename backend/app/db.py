@@ -19,14 +19,22 @@ def get_db():
         db.close()
 
 
+_schema_checked = False
+
+
 def init_db() -> None:
+    global _schema_checked
     """Cria/migra o schema se precisar. No cold start do prod faz só um precheck barato."""
     from . import models  # noqa: F401  (registra as tabelas no metadata)
 
     if not settings.run_migrations:
         return
 
+    if _schema_checked:
+        return
+
     if engine.dialect.name == "postgresql" and _schema_ok():
+        _schema_checked = True
         return
 
     Base.metadata.create_all(bind=engine)
@@ -34,6 +42,7 @@ def init_db() -> None:
     _ensure_column("palquinho_day", "instagram", "VARCHAR(300)")
     _ensure_column("palquinho_suggestion", "action", "VARCHAR(10)")
     _ensure_column("palquinho_suggestion", "solved_at", "TIMESTAMP")
+    _schema_checked = True
 
 
 _EXPECTED = {

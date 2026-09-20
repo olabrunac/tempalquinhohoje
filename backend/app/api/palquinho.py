@@ -27,6 +27,20 @@ def get_today(db: Session = Depends(get_db)):
     return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
 
 
+@router.get("/home", response_model=schemas.HomeOut)
+def get_home(db: Session = Depends(get_db)):
+    """Retorna o SIM/NÃO de hoje e todos os dias marcados em 1 única requisição."""
+    today = today_local()
+    row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
+    today_out = (
+        schemas.TodayOut(day=today)
+        if row is None
+        else schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+    )
+    days_out = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    return schemas.HomeOut(today=today_out, days=days_out)
+
+
 @router.get("/days", response_model=list[schemas.DayOut])
 def list_days(db: Session = Depends(get_db)):
     """Todos os dias já marcados pelo admin."""

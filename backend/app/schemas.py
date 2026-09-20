@@ -20,6 +20,11 @@ class TodayOut(BaseModel):
     instagram: str | None = None
 
 
+class HomeOut(BaseModel):
+    today: TodayOut
+    days: list[DayOut]
+
+
 class SuggestionIn(BaseModel):
     day: date
     organizer: str
