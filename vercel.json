@@ -6,11 +6,5 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/tweet-daily",
-      "schedule": "0 9 * * *"
-    }
   ]
 }
