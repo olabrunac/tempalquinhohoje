@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     # False em produção (Vercel) pula o init_db no boot — cold start mais rápido.
     # True = cria/migra o schema (default, útil no dev/SQLite e após mudanças de schema).
     run_migrations: bool = True
+    twitter_api_key: str | None = None
+    twitter_api_secret: str | None = None
+    twitter_access_token: str | None = None
+    twitter_access_secret: str | None = None
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

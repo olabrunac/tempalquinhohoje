@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/warmup",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/tweet-daily",
+      "schedule": "0 9 * * *"
     }
   ]
 }
