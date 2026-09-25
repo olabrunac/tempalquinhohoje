@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class DayOut(BaseModel):
     day: date
     has_palquinho: bool
-    status: str = "yes"  # 'yes', 'no', 'other'
+    status: str | None = "yes"  # 'yes', 'no', 'other'
     note: str | None = None
     instagram: str | None = None
 
