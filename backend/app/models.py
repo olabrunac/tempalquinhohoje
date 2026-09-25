@@ -12,6 +12,7 @@ class PalquinhoDay(Base):
 
     day: Mapped[date] = mapped_column(Date, primary_key=True)
     has_palquinho: Mapped[bool]
+    status: Mapped[str] = mapped_column(String(10), default="yes")  # 'yes', 'no', 'other'
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

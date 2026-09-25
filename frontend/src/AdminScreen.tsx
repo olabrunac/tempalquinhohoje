@@ -142,12 +142,12 @@ export default function AdminScreen() {
     setSelectedDay(null)
   }
 
-  const setDay = async (has: boolean) => {
+  const setDay = async (has: boolean, status: 'yes' | 'no' | 'other') => {
     if (!selectedDay) return
     setBusy(true)
     setFeedback('')
     try {
-      await api.setDay(selectedDay, has, noteDraft.trim() || null, instagramDraft.trim() || null, adminKey)
+      await api.setDay(selectedDay, has, status, noteDraft.trim() || null, instagramDraft.trim() || null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -174,7 +174,7 @@ export default function AdminScreen() {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(s.id, true, s.instagram ?? null, adminKey)
+      await api.confirmSuggestion(s.id, true, 'yes', s.instagram ?? null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -284,7 +284,7 @@ export default function AdminScreen() {
               const isSelected = key === selectedDay
               const cls = [
                 'cal-cell',
-                day ? (day.has_palquinho ? 'has-yes' : 'has-no') : '',
+                day ? (day.status === 'other' ? 'has-other' : day.has_palquinho ? 'has-yes' : 'has-no') : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -307,9 +307,10 @@ export default function AdminScreen() {
             })}
           </div>
           <div className="legend">
-            <span className="legend-yes">SIM marcado</span>
-            <span className="legend-no">NÃO marcado</span>
-            <span className="legend-null">sem marcação</span>
+            <span className="legend-yes">SIM</span>
+            <span className="legend-no">NÃO</span>
+            <span style={{ color: 'var(--orange)' }}>outro evento</span>
+            <span className="legend-null">vazio</span>
           </div>
           <VisitsPanel visits={visits} />
         </section>
@@ -320,8 +321,8 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status">
-                  {selected ? (selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO com nota/anúncio 🙅') : 'ainda não marcado'}
+                <p className="current-status" style={{ color: selected?.status === 'other' ? 'var(--orange' : undefined }}>
+                  {selected ? (selected.status === 'other' ? 'marcado: Outro evento 🗓️' : selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO 🙅') : 'ainda não marcado'}
                 </p>
                 <textarea
                   className="textarea"
@@ -338,12 +339,22 @@ export default function AdminScreen() {
                   onChange={(e) => setInstagramDraft(e.target.value)}
                   maxLength={300}
                 />
-                <div className="panel-actions">
-                  <button className="btn yes-btn" onClick={() => setDay(true)} disabled={busy}>
-                    marcar SIM
-                  </button>
-                  <button className="btn no-btn" onClick={() => setDay(false)} disabled={busy}>
-                    marcar NÃO
+                <div className="panel-actions" style={{ flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                    <button className="btn yes-btn" onClick={() => setDay(true, 'yes')} disabled={busy}>
+                      marcar SIM
+                    </button>
+                    <button className="btn no-btn" onClick={() => setDay(false, 'no')} disabled={busy}>
+                      marcar NÃO
+                    </button>
+                  </div>
+                  <button
+                    className="btn"
+                    style={{ background: 'var(--orange)', color: '#fff', width: '100%' }}
+                    onClick={() => setDay(false, 'other')}
+                    disabled={busy}
+                  >
+                    Outro Evento (Laranja)
                   </button>
                 </div>
                 {selected && (

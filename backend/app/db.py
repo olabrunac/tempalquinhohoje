@@ -40,13 +40,14 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_column("palquinho_suggestion", "instagram", "VARCHAR(300)")
     _ensure_column("palquinho_day", "instagram", "VARCHAR(300)")
+    _ensure_column("palquinho_day", "status", "VARCHAR(10) DEFAULT 'yes'")
     _ensure_column("palquinho_suggestion", "action", "VARCHAR(10)")
     _ensure_column("palquinho_suggestion", "solved_at", "TIMESTAMP")
     _schema_checked = True
 
 
 _EXPECTED = {
-    "palquinho_day": {"day", "has_palquinho", "note", "instagram", "updated_at"},
+    "palquinho_day": {"day", "has_palquinho", "status", "note", "instagram", "updated_at"},
     "palquinho_suggestion": {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",
     },

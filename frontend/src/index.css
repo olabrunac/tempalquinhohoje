@@ -9,6 +9,7 @@
   --green-soft: #dcfce7;
   --red: #dc2626;
   --red-soft: #fee2e2;
+  --orange: #f97316;
   --ink: #1f2937;
   --muted: #6b7280;
   --line: #e5e7eb;
@@ -33,7 +34,8 @@ body {
 }
 
 .screen.yes,
-.screen.no {
+.screen.no,
+.screen.other {
   background: #000;
 }
 
@@ -110,6 +112,10 @@ body {
 
 .screen.no .big-answer {
   color: var(--red);
+}
+
+.screen.other .big-answer {
+  color: var(--orange);
 }
 
 .screen.unknown .big-answer {
@@ -881,6 +887,76 @@ body {
 
 .week-day.no {
   background: var(--red);
+}
+
+.week-day.other {
+  background: var(--orange);
+}
+
+.cal-cell.has-other {
+  background: var(--orange);
+  color: #fff;
+}
+
+.hamburger-container {
+  position: relative;
+}
+
+.hamburger-btn {
+  background: #fff;
+  border: none;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  transition: transform 0.1s ease, filter 0.15s ease;
+  color: #000;
+}
+
+.hamburger-btn:hover {
+  filter: brightness(0.9);
+  transform: scale(1.03);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 180px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.menu-item {
+  background: transparent;
+  border: none;
+  color: #f3f4f6;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.menu-item:hover {
+  background: #1f2937;
+  color: #fff;
 }
 
 .week-day.today {

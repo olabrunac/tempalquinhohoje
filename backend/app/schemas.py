@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class DayOut(BaseModel):
     day: date
     has_palquinho: bool
+    status: str = "yes"  # 'yes', 'no', 'other'
     note: str | None = None
     instagram: str | None = None
 
@@ -16,6 +17,7 @@ class DayOut(BaseModel):
 class TodayOut(BaseModel):
     day: date
     has_palquinho: bool | None = None  # None = não marcado ainda
+    status: str | None = None  # 'yes', 'no', 'other'
     note: str | None = None
     instagram: str | None = None
 
@@ -48,6 +50,7 @@ class SuggestionOut(BaseModel):
 
 class DaySetIn(BaseModel):
     has_palquinho: bool
+    status: str = "yes"  # 'yes', 'no', 'other'
     note: str | None = None
     instagram: str | None = None
 

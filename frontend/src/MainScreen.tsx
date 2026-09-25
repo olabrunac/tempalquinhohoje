@@ -37,7 +37,7 @@ function fireConfetti() {
 }
 
 const WEEK_CHIP = 52
-const WEEK_GAP_TARGET = 5.6 // 0.35rem — gap definido no CSS
+const WEEK_GAP_TARGET = 5.6
 
 function fitWeekGap(el: HTMLElement) {
   const style = getComputedStyle(el)
@@ -59,6 +59,8 @@ export default function MainScreen() {
   const [error, setError] = useState('')
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
+  const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const week = weekRef.current
@@ -74,7 +76,6 @@ export default function MainScreen() {
       api.registerVisit().catch(() => {})
     }
 
-    // 1. Prioridade máxima: busca o SIM/NÃO verdadeiro de hoje imediatamente
     api
       .getToday()
       .then((t) => {
@@ -89,7 +90,6 @@ export default function MainScreen() {
         setError(e.message)
       })
 
-    // 2. Segunda prioridade: busca os dias da semana para o rodapé
     api
       .getDays()
       .then((d) => {
@@ -98,30 +98,44 @@ export default function MainScreen() {
       .catch(() => {})
   }, [])
 
-  const hasPalquinho = today?.has_palquinho ?? false
-  const loading = !today && !error
-  const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : 'no'
-
-  const dayMap = new Map(days.map((d) => [d.day, d]))
   const todayIso = iso(new Date())
+  const activeIso = selectedDayIso ?? todayIso
+  const dayMap = new Map(days.map((d) => [d.day, d]))
+  const currentDayData = activeIso === todayIso ? today : dayMap.get(activeIso)
+
+  const hasPalquinho = currentDayData?.has_palquinho ?? false
+  const status = currentDayData?.status ?? (hasPalquinho ? 'yes' : 'no')
+  const loading = !today && !error && activeIso === todayIso
+  const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : status === 'other' ? 'other' : 'no'
+
   const week = currentWeek()
 
   return (
     <div className={`screen ${screenClass}`}>
       <main className="mid">
+        {selectedDayIso && selectedDayIso !== todayIso && (
+          <button
+            type="button"
+            className="admin-link"
+            onClick={() => setSelectedDayIso(null)}
+            style={{ marginBottom: '-0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
+          >
+            ← voltar para hoje
+          </button>
+        )}
         {error ? (
           <p className="error">Deu ruim: {error}</p>
         ) : loading ? (
           <h1 className="big-answer muted" style={{ opacity: 0.3 }}>...</h1>
         ) : (
           <>
-            {today && <p className="date-line">{fmtDay(today.day)}</p>}
+            <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
-            {today?.note && <p className="note">{today.note}</p>}
-            {today?.instagram && (
+            {currentDayData?.note && <p className="note">{currentDayData.note}</p>}
+            {currentDayData?.instagram && (
               <a
                 className="event-insta"
-                href={today.instagram}
+                href={currentDayData.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -137,19 +151,23 @@ export default function MainScreen() {
           const key = iso(d)
           const day = dayMap.get(key)
           const has = day?.has_palquinho ?? false
+          const st = day?.status ?? (has ? 'yes' : 'no')
           const isToday = key === todayIso
           const isPast = key < todayIso
+          const isSelected = key === activeIso
           const cls = [
             'week-day',
-            has ? 'yes' : 'no',
+            has ? 'yes' : st === 'other' ? 'other' : 'no',
             isToday ? 'today' : '',
             isPast ? 'past' : '',
-            day?.instagram ? 'clickable' : '',
+            isSelected ? 'selected' : '',
           ]
             .filter(Boolean)
             .join(' ')
           const title = has
-            ? day?.note || (day?.instagram ? 'ver anúncio no instagram ↗' : 'tem palquinho! 🎉')
+            ? day?.note || 'tem palquinho! 🎉'
+            : st === 'other'
+            ? day?.note || 'outro evento'
             : day?.note || 'acho que não tem'
           const inner = (
             <>
@@ -157,36 +175,55 @@ export default function MainScreen() {
               <span className="week-num">{d.getDate()}</span>
             </>
           )
-          return day?.instagram ? (
-            <a
+          return (
+            <button
+              type="button"
               key={key}
               className={cls}
-              href={day.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
               title={title}
+              onClick={() => setSelectedDayIso(key)}
+              style={{ background: undefined, border: 'none', cursor: 'pointer', padding: 0 }}
             >
               {inner}
-            </a>
-          ) : (
-            <div key={key} className={cls} title={title}>
-              {inner}
-            </div>
+            </button>
           )
         })}
       </footer>
 
-      <div className="corner-nav">
+      <div className="corner-nav hamburger-container">
         {thankYou ? (
           <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
         ) : (
-          <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
-            sabe de algum? clica aqui
+          <button
+            type="button"
+            className="hamburger-btn"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="menu de opções"
+          >
+            ☰
           </button>
         )}
-        <Link className="corner-admin" to="/admin">
-          admin
-        </Link>
+        {menuOpen && (
+          <div className="menu-dropdown">
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => {
+                setMenuOpen(false)
+                setShowSuggestion(true)
+              }}
+            >
+              sabe de algum? clica aqui
+            </button>
+            <Link
+              className="menu-item"
+              to="/eventos"
+              onClick={() => setMenuOpen(false)}
+            >
+              outros eventos
+            </Link>
+          </div>
+        )}
       </div>
 
       {showSuggestion && (

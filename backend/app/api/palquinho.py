@@ -25,7 +25,7 @@ def get_today(response: Response, db: Session = Depends(get_db)):
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
         return schemas.TodayOut(day=today)
-    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, status=row.status, note=row.note, instagram=row.instagram)
 
 
 @router.get("/home", response_model=schemas.HomeOut)
@@ -37,7 +37,7 @@ def get_home(response: Response, db: Session = Depends(get_db)):
     today_out = (
         schemas.TodayOut(day=today)
         if row is None
-        else schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+        else schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, status=row.status, note=row.note, instagram=row.instagram)
     )
     days_out = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
     return schemas.HomeOut(today=today_out, days=days_out)
@@ -74,6 +74,7 @@ def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
         row = models.PalquinhoDay(day=d)
         db.add(row)
     row.has_palquinho = payload.has_palquinho
+    row.status = payload.status
     row.note = payload.note
     row.instagram = payload.instagram
     db.commit()
@@ -134,6 +135,7 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
         row = models.PalquinhoDay(day=sug.day)
         db.add(row)
     row.has_palquinho = payload.has_palquinho
+    row.status = payload.status
     row.note = payload.note
     row.instagram = payload.instagram
     sug.status = "solved"
