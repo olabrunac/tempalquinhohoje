@@ -943,10 +943,10 @@ body {
 }
 
 .menu-item {
-  background: transparent;
-  border: none;
+  background: #1a1a1a;
+  border: 1px solid #333;
   color: #f3f4f6;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1rem;
   font-size: 0.9rem;
   font-weight: 600;
   text-align: left;
@@ -954,10 +954,12 @@ body {
   cursor: pointer;
   text-decoration: none;
   display: block;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .menu-item:hover {
-  background: #1f2937;
+  background: #262626;
+  border-color: #555;
   color: #fff;
 }
 
