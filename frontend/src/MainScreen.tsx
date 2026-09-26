@@ -117,6 +117,42 @@ export default function MainScreen() {
 
   return (
     <div className={`screen ${screenClass}`}>
+      <div className="corner-nav hamburger-container">
+        {thankYou ? (
+          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
+        ) : (
+          <button
+            type="button"
+            className="hamburger-btn"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="menu de opções"
+          >
+            ☰
+          </button>
+        )}
+        {menuOpen && (
+          <div className="menu-dropdown">
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => {
+                setMenuOpen(false)
+                setShowSuggestion(true)
+              }}
+            >
+              sabe de algum? clica aqui
+            </button>
+            <Link
+              className="menu-item"
+              to="/eventos"
+              onClick={() => setMenuOpen(false)}
+            >
+              outros eventos
+            </Link>
+          </div>
+        )}
+      </div>
+
       <main className="mid">
         {selectedDayIso && selectedDayIso !== todayIso && (
           <button
@@ -194,42 +230,6 @@ export default function MainScreen() {
           )
         })}
       </footer>
-
-      <div className="corner-nav hamburger-container">
-        {thankYou ? (
-          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
-        ) : (
-          <button
-            type="button"
-            className="hamburger-btn"
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label="menu de opções"
-          >
-            ☰
-          </button>
-        )}
-        {menuOpen && (
-          <div className="menu-dropdown">
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => {
-                setMenuOpen(false)
-                setShowSuggestion(true)
-              }}
-            >
-              sabe de algum? clica aqui
-            </button>
-            <Link
-              className="menu-item"
-              to="/eventos"
-              onClick={() => setMenuOpen(false)}
-            >
-              outros eventos
-            </Link>
-          </div>
-        )}
-      </div>
 
       {showSuggestion && (
         <SuggestionModal

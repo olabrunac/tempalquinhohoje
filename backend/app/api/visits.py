@@ -18,13 +18,7 @@ def create_visit(x_admin_key: str | None = Header(default=None), db: Session = D
     """Conta uma visita à tela inicial. Visitas do próprio admin não entram na conta."""
     if x_admin_key and x_admin_key == settings.ADMIN_PASSWORD:
         return
-    today = today_local()
-    db.add(models.Visit(day=today))
-    
-    # Gestão de armazenamento (Neon Free Tier): remove visitas com mais de 60 dias
-    cutoff = today - timedelta(days=60)
-    db.query(models.Visit).filter(models.Visit.day < cutoff).delete()
-    
+    db.add(models.Visit(day=today_local()))
     db.commit()
 
 
