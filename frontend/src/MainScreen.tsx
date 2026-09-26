@@ -135,7 +135,17 @@ export default function MainScreen() {
           <>
             <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
-            {cleanNote(currentDayData?.note) && <p className="note">{cleanNote(currentDayData?.note)}</p>}
+            {cleanNote(currentDayData?.note) && (
+              <div className="notes-list">
+                {cleanNote(currentDayData?.note)
+                  ?.split('\n')
+                  .map((line, idx) => line.trim() && (
+                    <p key={idx} className="note-card">
+                      {line}
+                    </p>
+                  ))}
+              </div>
+            )}
             {currentDayData?.instagram && (
               <a
                 className="event-insta"

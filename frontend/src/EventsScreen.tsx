@@ -131,7 +131,17 @@ export default function EventsScreen() {
               <p className="current-status" style={{ color: !selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
                 {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? '🗓️ Tem rolê confirmado' : '🎉 Tem palquinho confirmado'}
               </p>
-              {cleanNote(selectedDay.note) && <p className="muted">{cleanNote(selectedDay.note)}</p>}
+              {cleanNote(selectedDay?.note) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                  {cleanNote(selectedDay?.note)
+                    ?.split('\n')
+                    .map((line, idx) => line.trim() && (
+                      <div key={idx} className="muted" style={{ background: '#1f2937', padding: '0.5rem 0.8rem', borderRadius: '8px', color: '#e5e7eb', fontSize: '0.95rem' }}>
+                        {line}
+                      </div>
+                    ))}
+                </div>
+              )}
               {selectedDay.instagram && (
                 <a
                   className="event-insta"

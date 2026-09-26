@@ -139,6 +139,24 @@ body {
   text-align: center;
 }
 
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  max-width: 90vw;
+}
+
+.note-card {
+  font-size: 1.15rem;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  text-align: center;
+}
+
 .event-insta {
   font-size: 1rem;
   font-weight: 700;

@@ -332,11 +332,14 @@ export default function AdminScreen() {
                 </p>
                 <textarea
                   className="textarea"
-                  placeholder="nota (opcional) — ex.: 'palquinho da bateria' ou 'mas tem batizado quimibyte'"
+                  placeholder="nota / eventos (um por linha) — ex.:&#10;14:00 - Churrasco da Bateria&#10;19:00 - Palquinho Principal"
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
-                  rows={2}
+                  rows={3}
                 />
+                <p className="muted" style={{ fontSize: '0.78rem', marginTop: '-0.3rem', lineHeight: 1.3 }}>
+                  💡 <strong>Múltiplos eventos:</strong> Digite cada evento em uma linha separada (ex: <em>14:00 - Churrasco</em>).
+                </p>
                 <input
                   className="input"
                   type="text"
