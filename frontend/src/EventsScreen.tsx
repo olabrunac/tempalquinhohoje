@@ -64,13 +64,13 @@ export default function EventsScreen() {
         <span className="admin-link" style={{ cursor: 'default' }}>outros eventos</span>
       </header>
 
-      <main className="admin-body" style={{ gridTemplateColumns: '1fr', maxWidth: '600px' }}>
+      <main className="admin-body events-body" style={{ gridTemplateColumns: '1fr' }}>
         <section className="calendar-col">
           <div className="calendar-nav">
             <button className="btn ghost" onClick={() => nav(-1)}>
               ←
             </button>
-            <h2 className="calendar-title">
+            <h2 className="calendar-title" style={{ fontSize: '1.4rem' }}>
               {MONTHS[month.month]} {month.year}
             </h2>
             <button className="btn ghost" onClick={() => nav(1)}>
@@ -80,7 +80,7 @@ export default function EventsScreen() {
           {loading ? (
             <p className="muted" style={{ textAlign: 'center', padding: '2rem' }}>carregando...</p>
           ) : (
-            <div className="calendar-grid">
+            <div className="calendar-grid events-calendar-grid">
               {WEEKDAYS.map((w) => (
                 <div key={w} className="cal-weekday">
                   {w}
@@ -120,16 +120,16 @@ export default function EventsScreen() {
               })}
             </div>
           )}
-          <div className="legend">
-            <span className="legend-yes">palquinho SIM</span>
-            <span style={{ color: 'var(--orange)' }}>● outro evento</span>
+          <div className="legend" style={{ fontSize: '0.95rem' }}>
+            <span className="legend-yes">Tem palquinho</span>
+            <span style={{ color: 'var(--orange)', fontWeight: 600 }}>● Tem rolê</span>
           </div>
 
           {selectedDay && (
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
               <p className="current-status" style={{ color: !selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
-                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? '🗓️ Outro evento confirmado' : '🎉 Palquinho SIM confirmado'}
+                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? '🗓️ Tem rolê confirmado' : '🎉 Tem palquinho confirmado'}
               </p>
               {cleanNote(selectedDay.note) && <p className="muted">{cleanNote(selectedDay.note)}</p>}
               {selectedDay.instagram && (
