@@ -161,7 +161,7 @@ export default function MainScreen() {
             onClick={() => setSelectedDayIso(null)}
             style={{ marginBottom: '-0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
           >
-            ← voltar para hoje
+            {activeIso < todayIso ? '→' : '←'} voltar para hoje
           </button>
         )}
         {error ? (
@@ -195,13 +195,13 @@ export default function MainScreen() {
           const isOtherDay = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
           const isToday = key === todayIso
           const isPast = key < todayIso
-          const isSelected = key === activeIso
+          const isViewing = key === activeIso
           const cls = [
             'week-day',
             has ? 'yes' : isOtherDay ? 'other' : 'no',
             isToday ? 'today' : '',
             isPast ? 'past' : '',
-            isSelected ? 'selected' : '',
+            isViewing ? 'viewing' : '',
           ]
             .filter(Boolean)
             .join(' ')
