@@ -142,12 +142,17 @@ export default function AdminScreen() {
     setSelectedDay(null)
   }
 
-  const setDay = async (has: boolean, status: 'yes' | 'no' | 'other') => {
+  const setDay = async (has: boolean, isOther: boolean = false) => {
     if (!selectedDay) return
     setBusy(true)
     setFeedback('')
+    let noteText = noteDraft.trim() || null
+    if (isOther) {
+      if (!noteText) noteText = '[EVENTO]'
+      else if (!noteText.startsWith('[EVENTO]')) noteText = '[EVENTO] ' + noteText
+    }
     try {
-      await api.setDay(selectedDay, has, status, noteDraft.trim() || null, instagramDraft.trim() || null, adminKey)
+      await api.setDay(selectedDay, has, noteText, instagramDraft.trim() || null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -174,7 +179,7 @@ export default function AdminScreen() {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(s.id, true, 'yes', s.instagram ?? null, adminKey)
+      await api.confirmSuggestion(s.id, true, s.instagram ?? null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -282,9 +287,10 @@ export default function AdminScreen() {
               const day = dayMap.get(key)
               const isToday = key === todayIso
               const isSelected = key === selectedDay
+              const isOther = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
               const cls = [
                 'cal-cell',
-                day ? (day.status === 'other' ? 'has-other' : day.has_palquinho ? 'has-yes' : 'has-no') : '',
+                day ? (isOther ? 'has-other' : day.has_palquinho ? 'has-yes' : 'has-no') : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -296,7 +302,7 @@ export default function AdminScreen() {
                   className={cls}
                   onClick={() => {
                     setSelectedDay(key)
-                    setNoteDraft(day?.note ?? '')
+                    setNoteDraft(day?.note ? day.note.replace(/^\[EVENTO\]\s*/i, '') : '')
                     setInstagramDraft(day?.instagram ?? '')
                     setFeedback('')
                   }}
@@ -321,8 +327,8 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected?.status === 'other' ? 'var(--orange' : undefined }}>
-                  {selected ? (selected.status === 'other' ? 'marcado: Outro evento 🗓️' : selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO 🙅') : 'ainda não marcado'}
+                <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'var(--orange)' : undefined }}>
+                  {selected ? (!selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'marcado: Outro evento 🗓️' : selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO 🙅') : 'ainda não marcado'}
                 </p>
                 <textarea
                   className="textarea"
@@ -341,17 +347,17 @@ export default function AdminScreen() {
                 />
                 <div className="panel-actions" style={{ flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-                    <button className="btn yes-btn" onClick={() => setDay(true, 'yes')} disabled={busy}>
+                    <button className="btn yes-btn" onClick={() => setDay(true, false)} disabled={busy}>
                       marcar SIM
                     </button>
-                    <button className="btn no-btn" onClick={() => setDay(false, 'no')} disabled={busy}>
+                    <button className="btn no-btn" onClick={() => setDay(false, false)} disabled={busy}>
                       marcar NÃO
                     </button>
                   </div>
                   <button
                     className="btn"
                     style={{ background: 'var(--orange)', color: '#fff', width: '100%' }}
-                    onClick={() => setDay(false, 'other')}
+                    onClick={() => setDay(false, true)}
                     disabled={busy}
                   >
                     Outro Evento (Laranja)

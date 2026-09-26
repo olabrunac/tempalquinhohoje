@@ -25,8 +25,7 @@ def get_today(response: Response, db: Session = Depends(get_db)):
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
         return schemas.TodayOut(day=today)
-    st = row.status or ("yes" if row.has_palquinho else "no")
-    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, status=st, note=row.note, instagram=row.instagram)
+    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
 
 
 @router.get("/home", response_model=schemas.HomeOut)
@@ -35,40 +34,19 @@ def get_home(response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "public, s-maxage=5, stale-while-revalidate=3600"
     today = today_local()
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
-    if row is None:
-        today_out = schemas.TodayOut(day=today)
-    else:
-        st = row.status or ("yes" if row.has_palquinho else "no")
-        today_out = schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, status=st, note=row.note, instagram=row.instagram)
-    
-    rows = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
-    days_out = [
-        schemas.DayOut(
-            day=r.day,
-            has_palquinho=r.has_palquinho,
-            status=r.status or ("yes" if r.has_palquinho else "no"),
-            note=r.note,
-            instagram=r.instagram,
-        )
-        for r in rows
-    ]
+    today_out = (
+        schemas.TodayOut(day=today)
+        if row is None
+        else schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+    )
+    days_out = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
     return schemas.HomeOut(today=today_out, days=days_out)
 
 
 @router.get("/days", response_model=list[schemas.DayOut])
 def list_days(db: Session = Depends(get_db)):
     """Todos os dias já marcados pelo admin."""
-    rows = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
-    return [
-        schemas.DayOut(
-            day=r.day,
-            has_palquinho=r.has_palquinho,
-            status=r.status or ("yes" if r.has_palquinho else "no"),
-            note=r.note,
-            instagram=r.instagram,
-        )
-        for r in rows
-    ]
+    return db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
 
 
 @router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
@@ -96,7 +74,6 @@ def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
         row = models.PalquinhoDay(day=d)
         db.add(row)
     row.has_palquinho = payload.has_palquinho
-    row.status = payload.status
     row.note = payload.note
     row.instagram = payload.instagram
     db.commit()
@@ -157,7 +134,6 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
         row = models.PalquinhoDay(day=sug.day)
         db.add(row)
     row.has_palquinho = payload.has_palquinho
-    row.status = payload.status
     row.note = payload.note
     row.instagram = payload.instagram
     sug.status = "solved"

@@ -18,6 +18,11 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function cleanNote(note?: string | null): string | null {
+  if (!note) return null
+  return note.replace(/^\[EVENTO\]\s*/i, '')
+}
+
 function currentWeek(): Date[] {
   const today = new Date()
   const start = new Date(today)
@@ -104,9 +109,9 @@ export default function MainScreen() {
   const currentDayData = activeIso === todayIso ? today : dayMap.get(activeIso)
 
   const hasPalquinho = currentDayData?.has_palquinho ?? false
-  const status = currentDayData?.status ?? (hasPalquinho ? 'yes' : 'no')
+  const isOther = currentDayData && !currentDayData.has_palquinho && currentDayData.note?.startsWith('[EVENTO]')
   const loading = !today && !error && activeIso === todayIso
-  const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : status === 'other' ? 'other' : 'no'
+  const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
 
   const week = currentWeek()
 
@@ -131,7 +136,7 @@ export default function MainScreen() {
           <>
             <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
-            {currentDayData?.note && <p className="note">{currentDayData.note}</p>}
+            {cleanNote(currentDayData?.note) && <p className="note">{cleanNote(currentDayData?.note)}</p>}
             {currentDayData?.instagram && (
               <a
                 className="event-insta"
@@ -151,13 +156,13 @@ export default function MainScreen() {
           const key = iso(d)
           const day = dayMap.get(key)
           const has = day?.has_palquinho ?? false
-          const st = day?.status ?? (has ? 'yes' : 'no')
+          const isOtherDay = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
           const isToday = key === todayIso
           const isPast = key < todayIso
           const isSelected = key === activeIso
           const cls = [
             'week-day',
-            has ? 'yes' : st === 'other' ? 'other' : 'no',
+            has ? 'yes' : isOtherDay ? 'other' : 'no',
             isToday ? 'today' : '',
             isPast ? 'past' : '',
             isSelected ? 'selected' : '',
@@ -165,10 +170,10 @@ export default function MainScreen() {
             .filter(Boolean)
             .join(' ')
           const title = has
-            ? day?.note || 'tem palquinho! 🎉'
-            : st === 'other'
-            ? day?.note || 'outro evento'
-            : day?.note || 'acho que não tem'
+            ? cleanNote(day?.note) || 'tem palquinho! 🎉'
+            : isOtherDay
+            ? cleanNote(day?.note) || 'outro evento'
+            : cleanNote(day?.note) || 'acho que não tem'
           const inner = (
             <>
               <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>

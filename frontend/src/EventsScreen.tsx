@@ -14,6 +14,11 @@ function fmtPt(day: string): string {
   return `${d} de ${MONTHS[m - 1]} de ${y}`
 }
 
+function cleanNote(note?: string | null): string | null {
+  if (!note) return null
+  return note.replace(/^\[EVENTO\]\s*/i, '')
+}
+
 function buildCells(year: number, month: number): (Date | null)[] {
   const first = new Date(year, month, 1)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -34,7 +39,7 @@ export default function EventsScreen() {
     api
       .getDays()
       .then((d) => {
-        setDays(d.filter((x) => x.status === 'yes' || x.status === 'other' || x.has_palquinho))
+        setDays(d.filter((x) => x.has_palquinho || x.note?.startsWith('[EVENTO]')))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -88,11 +93,11 @@ export default function EventsScreen() {
                 const isToday = key === todayIso
                 const isSelected = selectedDay?.day === key
                 const hasEvent = !!day
-                const status = day?.status ?? (day?.has_palquinho ? 'yes' : 'no')
+                const isOther = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
 
                 const cls = [
                   'cal-cell',
-                  hasEvent ? (status === 'other' ? 'has-other' : 'has-yes') : '',
+                  hasEvent ? (isOther ? 'has-other' : 'has-yes') : '',
                   isToday ? 'today' : '',
                   isSelected ? 'selected' : '',
                 ]
@@ -123,10 +128,10 @@ export default function EventsScreen() {
           {selectedDay && (
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
-              <p className="current-status" style={{ color: selectedDay.status === 'other' ? 'var(--orange)' : 'var(--green)' }}>
-                {selectedDay.status === 'other' ? '🗓️ Outro evento confirmado' : '🎉 Palquinho SIM confirmado'}
+              <p className="current-status" style={{ color: !selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
+                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? '🗓️ Outro evento confirmado' : '🎉 Palquinho SIM confirmado'}
               </p>
-              {selectedDay.note && <p className="muted">{selectedDay.note}</p>}
+              {cleanNote(selectedDay.note) && <p className="muted">{cleanNote(selectedDay.note)}</p>}
               {selectedDay.instagram && (
                 <a
                   className="event-insta"
