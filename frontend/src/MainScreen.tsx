@@ -65,7 +65,6 @@ export default function MainScreen() {
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const week = weekRef.current
@@ -117,42 +116,6 @@ export default function MainScreen() {
 
   return (
     <div className={`screen ${screenClass}`}>
-      <div className="corner-nav hamburger-container">
-        {thankYou ? (
-          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
-        ) : (
-          <button
-            type="button"
-            className="hamburger-btn"
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label="menu de opções"
-          >
-            ☰
-          </button>
-        )}
-        {menuOpen && (
-          <div className="menu-dropdown">
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => {
-                setMenuOpen(false)
-                setShowSuggestion(true)
-              }}
-            >
-              sabe de algum? clica aqui
-            </button>
-            <Link
-              className="menu-item"
-              to="/eventos"
-              onClick={() => setMenuOpen(false)}
-            >
-              outros eventos
-            </Link>
-          </div>
-        )}
-      </div>
-
       <main className="mid">
         {selectedDayIso && selectedDayIso !== todayIso && (
           <button
@@ -230,6 +193,19 @@ export default function MainScreen() {
           )
         })}
       </footer>
+
+      <div className="corner-nav">
+        {thankYou ? (
+          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
+        ) : (
+          <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
+            sabe de algum? clica aqui
+          </button>
+        )}
+        <Link className="corner-suggest" to="/eventos" style={{ display: 'inline-block', textAlign: 'center' }}>
+          outros eventos
+        </Link>
+      </div>
 
       {showSuggestion && (
         <SuggestionModal
