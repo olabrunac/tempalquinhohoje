@@ -459,6 +459,10 @@ body {
   color: var(--red);
 }
 
+.legend-other::before {
+  color: var(--orange);
+}
+
 .legend-null::before {
   color: var(--line);
 }

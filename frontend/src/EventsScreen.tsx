@@ -122,7 +122,7 @@ export default function EventsScreen() {
           )}
           <div className="legend" style={{ fontSize: '0.95rem' }}>
             <span className="legend-yes">Tem palquinho</span>
-            <span style={{ color: 'var(--orange)', fontWeight: 600 }}>● Tem rolê</span>
+            <span className="legend-other" style={{ color: 'var(--orange)', fontWeight: 600 }}>Tem rolê</span>
           </div>
 
           {selectedDay && (
