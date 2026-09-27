@@ -1,21 +1,37 @@
 import sys
+import re
 from datetime import datetime
 import pandas as pd
 from app.db import SessionLocal, init_db
 from app.models import PalquinhoDay
 
 
-def import_excel(filepath: str):
+def get_sheets_csv_url(url: str) -> str:
+    match = re.search(r'/d/([a-zA-Z0-9-_]+)', url)
+    if not match:
+        return url
+    sheet_id = match.group(1)
+    gid_match = re.search(r'gid=([0-9]+)', url)
+    gid = gid_match.group(1) if gid_match else '0'
+    return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+
+
+def import_events(source: str):
     init_db()
     db = SessionLocal()
 
     try:
-        if filepath.endswith('.csv'):
-            df = pd.read_csv(filepath)
-        else:
-            df = pd.read_excel(filepath)
+        url_or_path = get_sheets_csv_url(source)
+        print(f"Lendo dados de: {url_or_path}...")
 
-        print(f"Lendo {len(df)} linhas do arquivo {filepath}...")
+        if url_or_path.startswith('http'):
+            df = pd.read_csv(url_or_path)
+        elif url_or_path.endswith('.csv'):
+            df = pd.read_csv(url_or_path)
+        else:
+            df = pd.read_excel(url_or_path)
+
+        print(f"Lendo {len(df)} linhas com sucesso...")
 
         events_by_date = {}
 
@@ -85,6 +101,6 @@ def import_excel(filepath: str):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Uso: python import_excel.py <caminho_arquivo.xlsx>")
+        print("Uso: python import_excel.py <link_google_sheets_ou_arquivo.xlsx>")
     else:
-        import_excel(sys.argv[1])
+        import_events(sys.argv[1])
