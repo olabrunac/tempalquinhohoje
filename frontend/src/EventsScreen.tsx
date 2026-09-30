@@ -129,7 +129,7 @@ export default function EventsScreen() {
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
               <p className="current-status" style={{ color: !selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
-                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? '🗓️ Tem rolê confirmado' : '🎉 Tem palquinho confirmado'}
+                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'Tem rolê confirmado' : 'Tem palquinho confirmado'}
               </p>
               {cleanNote(selectedDay?.note) && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>

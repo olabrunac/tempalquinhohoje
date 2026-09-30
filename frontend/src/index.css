@@ -861,10 +861,6 @@ body {
   font-size: 0.95rem;
 }
 
-.mini-cal-date::before {
-  content: '🎉 ';
-}
-
 /* ---- faixa semanal no rodapé ---- */
 
 .week {

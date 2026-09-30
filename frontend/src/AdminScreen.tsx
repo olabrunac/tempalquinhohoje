@@ -328,7 +328,7 @@ export default function AdminScreen() {
             {selectedDay && (
               <>
                 <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'var(--orange)' : undefined }}>
-                  {selected ? (!selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'marcado: Outro evento 🗓️' : selected.has_palquinho ? 'marcado: palquinho SIM 🎉' : 'marcado: NÃO 🙅') : 'ainda não marcado'}
+                  {selected ? (!selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'marcado: Outro evento' : selected.has_palquinho ? 'marcado: palquinho SIM' : 'marcado: NÃO') : 'ainda não marcado'}
                 </p>
                 <textarea
                   className="textarea"

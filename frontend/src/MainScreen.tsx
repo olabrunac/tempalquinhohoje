@@ -206,7 +206,7 @@ export default function MainScreen() {
 
       <div className="corner-nav">
         {thankYou ? (
-          <div className="corner-thanks">mandado! o admin vai confirmar 🎉</div>
+          <div className="corner-thanks">mandado! o admin vai confirmar</div>
         ) : (
           <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
             sabe de algum? clica aqui
