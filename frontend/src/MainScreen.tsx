@@ -124,7 +124,7 @@ export default function MainScreen() {
             onClick={() => setSelectedDayIso(null)}
             style={{ marginBottom: '-0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
           >
-            {activeIso < todayIso ? '→' : '←'} voltar para hoje
+            voltar para hoje
           </button>
         )}
         {error ? (

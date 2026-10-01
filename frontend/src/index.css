@@ -148,18 +148,19 @@ body {
 }
 
 .note-text-simple {
-  font-size: 1.1rem;
-  color: #d1d5db;
-  font-weight: 500;
+  font-size: 1.4rem;
+  color: #e5e7eb;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .instagram-link-simple {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   color: #9ca3af;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.15s ease;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .instagram-link-simple:hover {
