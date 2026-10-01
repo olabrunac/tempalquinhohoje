@@ -136,11 +136,11 @@ export default function MainScreen() {
             <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
             {cleanNote(currentDayData?.note) && (
-              <div className="notes-list">
+              <div className="notes-list-simple">
                 {cleanNote(currentDayData?.note)
                   ?.split('\n')
                   .map((line, idx) => line.trim() && (
-                    <p key={idx} className="note-card">
+                    <p key={idx} className="note-text-simple">
                       {line}
                     </p>
                   ))}
@@ -148,12 +148,12 @@ export default function MainScreen() {
             )}
             {currentDayData?.instagram && (
               <a
-                className="event-insta"
+                className="instagram-link-simple"
                 href={currentDayData.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                ver anúncio no instagram ↗
+                ver no instagram ↗
               </a>
             )}
           </>
