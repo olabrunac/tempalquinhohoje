@@ -152,24 +152,24 @@ export default function MainScreen() {
   return (
     <div className={`screen ${screenClass}`}>
       <main className="mid">
-        {selectedDayIso && selectedDayIso !== todayIso && (
-          <div className="back-slot">
-            <button
-              type="button"
-              className="admin-link"
-              onClick={() => setSelectedDayIso(null)}
-              style={{ background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
-            >
-              voltar para hoje
-            </button>
-          </div>
-        )}
         {error ? (
           <p className="error">Deu ruim: {error}</p>
         ) : loading ? (
           <h1 className="big-answer muted" style={{ opacity: 0.3 }}>...</h1>
         ) : (
           <div className="answer-block">
+            <div className="back-slot">
+              {selectedDayIso && selectedDayIso !== todayIso && (
+                <button
+                  type="button"
+                  className="admin-link"
+                  onClick={() => setSelectedDayIso(null)}
+                  style={{ background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
+                >
+                  voltar para hoje
+                </button>
+              )}
+            </div>
             <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : (activeIso === '2026-10-04' || activeIso === '2026-10-25') ? '13' : 'NÃO'}</h1>
           </div>
