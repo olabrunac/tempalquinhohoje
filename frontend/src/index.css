@@ -887,39 +887,13 @@ body {
   padding: 0 1rem 2.5rem;
 }
 
-@media (max-width: 480px) {
-  .week-nav-container {
-    gap: 0.1rem;
-    padding: 0 0.2rem 2rem;
-  }
-  .week-arrow {
-    width: 22px;
-    font-size: 1.2rem;
-  }
-  .week {
-    gap: 0.15rem;
-    max-width: 100%;
-  }
-  .week-day {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-  }
-  .week-num {
-    font-size: 0.9rem;
-  }
-  .week-dow {
-    font-size: 0.55rem;
-  }
-}
-
 .week-arrow {
   background: transparent;
   border: none;
-  color: #9ca3af;
-  width: 36px;
+  color: #e5e7eb;
+  width: 40px;
   height: 52px;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 300;
   cursor: pointer;
   display: flex;
@@ -927,15 +901,43 @@ body {
   justify-content: center;
   transition: color 0.15s ease, transform 0.1s ease;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .week-arrow:hover {
   color: #fff;
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .week-arrow:active {
   transform: scale(0.95);
+}
+
+@media (max-width: 480px) {
+  .week-nav-container {
+    gap: 0.1rem;
+    padding: 0 0.2rem 2rem;
+  }
+  .week-arrow {
+    width: 24px;
+    font-size: 1.3rem;
+    color: #e5e7eb;
+  }
+  .week {
+    gap: 0.15rem;
+    max-width: 100%;
+  }
+  .week-day {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .week-num {
+    font-size: 0.85rem;
+  }
+  .week-dow {
+    font-size: 0.52rem;
+  }
 }
 
 @keyframes slideIn {
