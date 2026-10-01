@@ -100,7 +100,7 @@ body {
 
 .back-slot {
   position: absolute;
-  top: 1rem;
+  top: 7.5rem;
   left: 0;
   right: 0;
   display: flex;
@@ -1170,8 +1170,5 @@ body {
   }
   .answer-block {
     gap: 1rem;
-  }
-  .back-slot {
-    top: 7.5rem;
   }
 }
