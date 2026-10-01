@@ -884,35 +884,6 @@ body {
   padding: 0 1rem 2.5rem;
 }
 
-@media (max-width: 480px) {
-  .week-nav-container {
-    gap: 0.25rem;
-    padding: 0 0.5rem 2rem;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-  .week-arrow {
-    width: 32px;
-    height: 42px;
-    font-size: 1.2rem;
-  }
-  .week {
-    gap: 0.25rem;
-    max-width: 100%;
-  }
-  .week-day {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-  }
-  .week-num {
-    font-size: 0.9rem;
-  }
-  .week-dow {
-    font-size: 0.58rem;
-  }
-}
-
 .week-arrow {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1122,4 +1093,35 @@ body {
 .week-num {
   font-size: 1.1rem;
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .week-nav-container {
+    gap: 0.2rem;
+    padding: 0 0.4rem 2rem;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .week-arrow {
+    width: 28px;
+    height: 38px;
+    font-size: 1.1rem;
+    border-radius: 9px;
+  }
+  .week {
+    gap: 0.2rem;
+    max-width: 100%;
+    flex-wrap: nowrap;
+  }
+  .week-day {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+  }
+  .week-num {
+    font-size: 0.9rem;
+  }
+  .week-dow {
+    font-size: 0.58rem;
+  }
 }
