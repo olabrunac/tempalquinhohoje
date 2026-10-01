@@ -19,6 +19,7 @@ html,
 body,
 #root {
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -880,6 +881,8 @@ body {
   justify-content: center;
   gap: 0.5rem;
   max-width: 540px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   padding: 0 1rem 2.5rem;
 }
@@ -952,7 +955,7 @@ body {
 
 .week {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: 0.35rem;
   max-width: 460px;
