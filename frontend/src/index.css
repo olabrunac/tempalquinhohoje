@@ -19,7 +19,6 @@ html,
 body,
 #root {
   height: 100%;
-  overflow-x: hidden;
 }
 
 body {
@@ -881,77 +880,63 @@ body {
   justify-content: center;
   gap: 0.5rem;
   max-width: 540px;
-  width: 100%;
-  box-sizing: border-box;
   margin: 0 auto;
   padding: 0 1rem 2.5rem;
 }
 
+@media (max-width: 480px) {
+  .week-nav-container {
+    gap: 0.25rem;
+    padding: 0 0.5rem 2rem;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .week-arrow {
+    width: 32px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+  .week {
+    gap: 0.25rem;
+    max-width: 100%;
+  }
+  .week-day {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+  .week-num {
+    font-size: 0.9rem;
+  }
+  .week-dow {
+    font-size: 0.58rem;
+  }
+}
+
 .week-arrow {
-  background: transparent;
-  border: none;
-  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
   width: 40px;
   height: 52px;
-  font-size: 2rem;
-  font-weight: 300;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, transform 0.1s ease;
   flex-shrink: 0;
-  z-index: 10;
 }
 
 .week-arrow:hover {
-  color: #fff;
-  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.05);
 }
 
 .week-arrow:active {
   transform: scale(0.95);
-}
-
-@media (max-width: 480px) {
-  .week-nav-container {
-    gap: 0.05rem;
-    padding: 0 0.1rem 2rem;
-    width: 100%;
-    box-sizing: border-box;
-    overflow: visible !important;
-  }
-  .week-arrow {
-    width: 30px !important;
-    min-width: 30px !important;
-    font-size: 1.4rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-    color: #ffffff !important;
-    overflow: visible !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  .week {
-    gap: 0.1rem;
-    max-width: 100%;
-    flex-wrap: nowrap;
-    overflow: visible !important;
-  }
-  .week-day {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-  .week-num {
-    font-size: 0.8rem;
-  }
-  .week-dow {
-    font-size: 0.5rem;
-  }
 }
 
 @keyframes slideIn {
@@ -971,7 +956,7 @@ body {
 
 .week {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 0.35rem;
   max-width: 460px;
