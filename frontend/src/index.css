@@ -93,10 +93,42 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
   padding: 1.5rem;
   position: relative;
   z-index: 2;
+}
+
+.back-slot {
+  position: absolute;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.back-slot .admin-link {
+  pointer-events: auto;
+}
+
+.answer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.extra-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 1.5rem;
+  min-height: 7rem;
 }
 
 .big-answer {
@@ -1131,5 +1163,12 @@ body {
   }
   .week-dow {
     font-size: 0.55rem;
+  }
+  .extra-block {
+    min-height: 5.5rem;
+    margin-top: 1rem;
+  }
+  .answer-block {
+    gap: 1rem;
   }
 }

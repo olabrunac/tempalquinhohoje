@@ -153,46 +153,50 @@ export default function MainScreen() {
     <div className={`screen ${screenClass}`}>
       <main className="mid">
         {selectedDayIso && selectedDayIso !== todayIso && (
-          <button
-            type="button"
-            className="admin-link"
-            onClick={() => setSelectedDayIso(null)}
-            style={{ marginBottom: '-0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
-          >
-            voltar para hoje
-          </button>
+          <div className="back-slot">
+            <button
+              type="button"
+              className="admin-link"
+              onClick={() => setSelectedDayIso(null)}
+              style={{ background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
+            >
+              voltar para hoje
+            </button>
+          </div>
         )}
         {error ? (
           <p className="error">Deu ruim: {error}</p>
         ) : loading ? (
           <h1 className="big-answer muted" style={{ opacity: 0.3 }}>...</h1>
         ) : (
-          <>
+          <div className="answer-block">
             <p className="date-line">{fmtDay(activeIso)}</p>
             <h1 className="big-answer">{hasPalquinho ? 'SIM' : (activeIso === '2026-10-04' || activeIso === '2026-10-25') ? '13' : 'NÃO'}</h1>
-            {cleanNote(currentDayData?.note) && (
-              <div className="notes-list-simple">
-                {cleanNote(currentDayData?.note)
-                  ?.split('\n')
-                  .map((line, idx) => line.trim() && (
-                    <p key={idx} className="note-text-simple">
-                      {line}
-                    </p>
-                  ))}
-              </div>
-            )}
-            {currentDayData?.instagram && (
-              <a
-                className="instagram-link-simple"
-                href={currentDayData.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ver no instagram ↗
-              </a>
-            )}
-          </>
+          </div>
         )}
+        <div className="extra-block">
+          {cleanNote(currentDayData?.note) && (
+            <div className="notes-list-simple">
+              {cleanNote(currentDayData?.note)
+                ?.split('\n')
+                .map((line, idx) => line.trim() && (
+                  <p key={idx} className="note-text-simple">
+                    {line}
+                  </p>
+                ))}
+            </div>
+          )}
+          {currentDayData?.instagram && (
+            <a
+              className="instagram-link-simple"
+              href={currentDayData.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ver no instagram ↗
+            </a>
+          )}
+        </div>
       </main>
 
       <div className="week-nav-container">
