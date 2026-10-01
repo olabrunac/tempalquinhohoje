@@ -885,25 +885,24 @@ body {
 }
 
 .week-arrow {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #fff;
-  width: 40px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  width: 36px;
   height: 52px;
-  border-radius: 12px;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 300;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: color 0.15s ease, transform 0.1s ease;
   flex-shrink: 0;
 }
 
 .week-arrow:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: scale(1.05);
+  color: #fff;
+  transform: scale(1.1);
 }
 
 .week-arrow:active {
