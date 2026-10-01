@@ -23,10 +23,7 @@ function cleanNote(note?: string | null): string | null {
   return note.replace(/^\[EVENTO\]\s*/i, '')
 }
 
-function currentWeek(): Date[] {
-  const today = new Date()
-  const start = new Date(today)
-  start.setDate(today.getDate() - today.getDay())
+function getWeekDays(start: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
@@ -66,6 +63,15 @@ export default function MainScreen() {
   const [thankYou, setThankYou] = useState(false)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
 
+  const [weekStart, setWeekStart] = useState<Date>(() => {
+    const t = new Date()
+    const start = new Date(t)
+    start.setDate(t.getDate() - t.getDay())
+    return start
+  })
+  const [animKey, setAnimKey] = useState(0)
+  const [slideDir, setSlideDir] = useState(1)
+
   useEffect(() => {
     const week = weekRef.current
     if (!week) return
@@ -73,7 +79,7 @@ export default function MainScreen() {
     apply()
     window.addEventListener('resize', apply)
     return () => window.removeEventListener('resize', apply)
-  }, [])
+  }, [weekStart])
 
   useEffect(() => {
     if (!localStorage.getItem(ADMIN_KEY)) {
@@ -112,7 +118,36 @@ export default function MainScreen() {
   const loading = !today && !error && activeIso === todayIso
   const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
 
-  const week = currentWeek()
+  const week = getWeekDays(weekStart)
+  const activeIndex = week.findIndex((d) => iso(d) === activeIso)
+
+  const goLeft = () => {
+    if (activeIndex > 0) {
+      setSelectedDayIso(iso(week[activeIndex - 1]))
+    } else {
+      const newStart = new Date(weekStart)
+      newStart.setDate(weekStart.getDate() - 7)
+      setWeekStart(newStart)
+      setSlideDir(-1)
+      setAnimKey((k) => k + 1)
+      const newWeek = getWeekDays(newStart)
+      setSelectedDayIso(iso(newWeek[6]))
+    }
+  }
+
+  const goRight = () => {
+    if (activeIndex >= 0 && activeIndex < 6) {
+      setSelectedDayIso(iso(week[activeIndex + 1]))
+    } else {
+      const newStart = new Date(weekStart)
+      newStart.setDate(weekStart.getDate() + 7)
+      setWeekStart(newStart)
+      setSlideDir(1)
+      setAnimKey((k) => k + 1)
+      const newWeek = getWeekDays(newStart)
+      setSelectedDayIso(iso(newWeek[0]))
+    }
+  }
 
   return (
     <div className={`screen ${screenClass}`}>
@@ -160,49 +195,57 @@ export default function MainScreen() {
         )}
       </main>
 
-      <footer className="week" ref={weekRef}>
-        {week.map((d) => {
-          const key = iso(d)
-          const day = dayMap.get(key)
-          const has = day?.has_palquinho ?? false
-          const isOtherDay = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
-          const isToday = key === todayIso
-          const isPast = key < todayIso
-          const isViewing = key === activeIso
-          const cls = [
-            'week-day',
-            has ? 'yes' : isOtherDay ? 'other' : 'no',
-            isToday ? 'today' : '',
-            isPast ? 'past' : '',
-            isViewing ? 'viewing' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')
-          const title = has
-            ? cleanNote(day?.note) || 'tem palquinho! 🎉'
-            : isOtherDay
-            ? cleanNote(day?.note) || 'outro evento'
-            : cleanNote(day?.note) || 'acho que não tem'
-          const inner = (
-            <>
-              <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
-              <span className="week-num">{d.getDate()}</span>
-            </>
-          )
-          return (
-            <button
-              type="button"
-              key={key}
-              className={cls}
-              title={title}
-              onClick={() => setSelectedDayIso(key)}
-              style={{ background: undefined, border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              {inner}
-            </button>
-          )
-        })}
-      </footer>
+      <div className="week-nav-container">
+        <button type="button" className="week-arrow" onClick={goLeft} aria-label="dia anterior">
+          ‹
+        </button>
+        <footer className="week slide-anim" ref={weekRef} key={animKey} style={{ '--slide-dir': `${slideDir * 20}px` } as React.CSSProperties}>
+          {week.map((d) => {
+            const key = iso(d)
+            const day = dayMap.get(key)
+            const has = day?.has_palquinho ?? false
+            const isOtherDay = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
+            const isToday = key === todayIso
+            const isPast = key < todayIso
+            const isViewing = key === activeIso
+            const cls = [
+              'week-day',
+              has ? 'yes' : isOtherDay ? 'other' : 'no',
+              isToday ? 'today' : '',
+              isPast ? 'past' : '',
+              isViewing ? 'viewing' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')
+            const title = has
+              ? cleanNote(day?.note) || 'tem palquinho! 🎉'
+              : isOtherDay
+              ? cleanNote(day?.note) || 'outro evento'
+              : cleanNote(day?.note) || 'acho que não tem'
+            const inner = (
+              <>
+                <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                <span className="week-num">{d.getDate()}</span>
+              </>
+            )
+            return (
+              <button
+                type="button"
+                key={key}
+                className={cls}
+                title={title}
+                onClick={() => setSelectedDayIso(key)}
+                style={{ background: undefined, border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                {inner}
+              </button>
+            )
+          })}
+        </footer>
+        <button type="button" className="week-arrow" onClick={goRight} aria-label="próximo dia">
+          ›
+        </button>
+      </div>
 
       <div className="corner-nav">
         {thankYou ? (
