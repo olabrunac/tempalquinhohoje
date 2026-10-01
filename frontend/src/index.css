@@ -915,30 +915,39 @@ body {
 
 @media (max-width: 480px) {
   .week-nav-container {
-    gap: 0.1rem;
-    padding: 0 0.2rem 2rem;
+    gap: 0.05rem;
+    padding: 0 0.1rem 2rem;
     width: 100%;
     box-sizing: border-box;
+    overflow: visible !important;
   }
   .week-arrow {
-    width: 32px !important;
+    width: 30px !important;
+    min-width: 30px !important;
     font-size: 1.4rem !important;
     display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-shrink: 0 !important;
-    color: #e5e7eb !important;
+    color: #ffffff !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   .week {
-    gap: 0.12rem;
+    gap: 0.1rem;
     max-width: 100%;
     flex-wrap: nowrap;
+    overflow: visible !important;
   }
   .week-day {
-    width: 35px;
-    height: 35px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
+    flex-shrink: 0;
   }
   .week-num {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
   }
   .week-dow {
     font-size: 0.5rem;
