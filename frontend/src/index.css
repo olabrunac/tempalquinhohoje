@@ -917,26 +917,31 @@ body {
   .week-nav-container {
     gap: 0.1rem;
     padding: 0 0.2rem 2rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   .week-arrow {
-    width: 24px;
-    font-size: 1.3rem;
-    color: #e5e7eb;
+    width: 32px !important;
+    font-size: 1.4rem !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    color: #e5e7eb !important;
   }
   .week {
-    gap: 0.15rem;
+    gap: 0.12rem;
     max-width: 100%;
+    flex-wrap: nowrap;
   }
   .week-day {
-    width: 36px;
-    height: 36px;
+    width: 35px;
+    height: 35px;
     border-radius: 8px;
   }
   .week-num {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
   .week-dow {
-    font-size: 0.52rem;
+    font-size: 0.5rem;
   }
 }
 
