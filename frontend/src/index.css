@@ -1171,4 +1171,7 @@ body {
   .answer-block {
     gap: 1rem;
   }
+  .back-slot {
+    top: 7.5rem;
+  }
 }
