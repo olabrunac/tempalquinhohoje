@@ -6,7 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .db import get_db, init_db
-from .api import palquinho, visits
+from .api import palquinho
 
 app = FastAPI(title="temPalquinhoHoje", version="0.1.0")
 
@@ -19,7 +19,6 @@ app.add_middleware(
 )
 
 app.include_router(palquinho.router, prefix="/api/v1", tags=["palquinho"])
-app.include_router(visits.router, prefix="/api/v1", tags=["visits"])
 
 
 @app.on_event("startup")

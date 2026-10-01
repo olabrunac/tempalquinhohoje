@@ -52,19 +52,7 @@ class DaySetIn(BaseModel):
     instagram: str | None = None
 
 
-class VisitDayOut(BaseModel):
-    day: date
-    count: int
-
-
-class VisitsAdminOut(BaseModel):
-    total: int
-    today: int
-    days: list[VisitDayOut]
-
-
 class DashboardOut(BaseModel):
     days: list[DayOut]
     pending: list[SuggestionOut]
     archive: list[SuggestionOut]
-    visits: VisitsAdminOut

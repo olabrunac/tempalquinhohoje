@@ -119,6 +119,41 @@ def list_suggestions(status: str | None = Query(default="pending"), db: Session 
     ]
 
 
+@router.get("/admin/dashboard", response_model=schemas.DashboardOut, dependencies=[Depends(require_admin)])
+def get_dashboard(db: Session = Depends(get_db)):
+    """Tudo que o painel admin precisa em 1 requisição só — 1 cold start, não 3."""
+    days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    pending = (
+        db.query(models.PalquinhoSuggestion)
+        .filter(models.PalquinhoSuggestion.status == "pending")
+        .order_by(models.PalquinhoSuggestion.day)
+        .all()
+    )
+    archive = (
+        db.query(models.PalquinhoSuggestion)
+        .filter(models.PalquinhoSuggestion.status == "solved")
+        .order_by(models.PalquinhoSuggestion.solved_at.desc())
+        .all()
+    )
+    marked = {d.day: d.has_palquinho for d in days}
+    to_out = lambda s: schemas.SuggestionOut(
+        id=s.id,
+        day=s.day,
+        organizer=s.organizer,
+        instagram=s.instagram,
+        status=s.status,
+        action=s.action,
+        solved_at=s.solved_at,
+        created_at=s.created_at,
+        has_palquinho=marked.get(s.day),
+    )
+    return schemas.DashboardOut(
+        days=days,
+        pending=[to_out(s) for s in pending],
+        archive=[to_out(s) for s in archive],
+    )
+
+
 @router.post(
     "/admin/suggestions/{suggestion_id}/confirm",
     response_model=schemas.DayOut,
