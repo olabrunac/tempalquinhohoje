@@ -134,7 +134,7 @@ export default function MainScreen() {
         ) : (
           <>
             <p className="date-line">{fmtDay(activeIso)}</p>
-            <h1 className="big-answer">{hasPalquinho ? 'SIM' : 'NÃO'}</h1>
+            <h1 className="big-answer">{hasPalquinho ? 'SIM' : (activeIso === '2026-10-04' || activeIso === '2026-10-25') ? '13' : 'NÃO'}</h1>
             {cleanNote(currentDayData?.note) && (
               <div className="notes-list-simple">
                 {cleanNote(currentDayData?.note)
