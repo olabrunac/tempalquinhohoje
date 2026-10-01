@@ -51,7 +51,6 @@ _EXPECTED = {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",
     },
     "day_log": {"id", "day", "action", "has_palquinho", "created_at"},
-    "visit": {"id", "day", "created_at"},
 }
 
 

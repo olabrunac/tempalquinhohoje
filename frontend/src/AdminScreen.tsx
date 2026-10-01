@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, ADMIN_KEY, ApiError, type DayOut, type SuggestionOut, type VisitsAdminOut } from './api'
+import { api, ADMIN_KEY, ApiError, type DayOut, type SuggestionOut } from './api'
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -28,46 +28,6 @@ function buildCells(year: number, month: number): (Date | null)[] {
   return cells
 }
 
-function VisitsPanel({ visits }: { visits: VisitsAdminOut | null }) {
-  const [open, setOpen] = useState(false)
-  const visitDays = visits?.days.slice(-14) ?? []
-  const visitMax = Math.max(1, ...visitDays.map((v) => v.count))
-  return (
-    <div className="panel visit-panel">
-      <button type="button" className="visit-toggle" onClick={() => setOpen((o) => !o)}>
-        <span className="panel-title">visitas</span>
-        <span className={`visit-toggle-arrow ${open ? 'open' : ''}`}>▸</span>
-      </button>
-      {open &&
-        (visits ? (
-          <>
-            <div className="visit-stats">
-              <span className="visit-stat">
-                <strong>{visits.today}</strong> hoje
-              </span>
-              <span className="visit-stat">
-                <strong>{visits.total}</strong> total
-              </span>
-            </div>
-            <ul className="visit-days">
-              {visitDays.map((v) => (
-                <li key={v.day} className="visit-day">
-                  <span className="visit-day-label">{fmtShort(v.day)}</span>
-                  <span className="visit-day-bar">
-                    <span className="visit-day-fill" style={{ width: `${(v.count / visitMax) * 100}%` }} />
-                  </span>
-                  <span className="visit-day-count">{v.count}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p className="muted">carregando...</p>
-        ))}
-    </div>
-  )
-}
-
 export default function AdminScreen() {
   const [adminKey, setAdminKey] = useState<string>(() => localStorage.getItem(ADMIN_KEY) ?? '')
   const [password, setPassword] = useState('')
@@ -80,7 +40,6 @@ export default function AdminScreen() {
   const [suggestions, setSuggestions] = useState<SuggestionOut[]>([])
   const [suggestionArchive, setSuggestionArchive] = useState<SuggestionOut[]>([])
   const [suggestionTab, setSuggestionTab] = useState<'pending' | 'archive'>('pending')
-  const [visits, setVisits] = useState<VisitsAdminOut | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
   const [instagramDraft, setInstagramDraft] = useState('')
@@ -92,7 +51,6 @@ export default function AdminScreen() {
     setDays(data.days)
     setSuggestions(data.pending)
     setSuggestionArchive(data.archive)
-    setVisits(data.visits)
   }, [])
 
   useEffect(() => {
@@ -131,7 +89,6 @@ export default function AdminScreen() {
     setDays([])
     setSuggestions([])
     setSuggestionArchive([])
-    setVisits(null)
     setSelectedDay(null)
   }
 
@@ -318,7 +275,6 @@ export default function AdminScreen() {
             <span style={{ color: 'var(--orange)' }}>outro evento</span>
             <span className="legend-null">vazio</span>
           </div>
-          <VisitsPanel visits={visits} />
         </section>
 
         <section className="panel-col">

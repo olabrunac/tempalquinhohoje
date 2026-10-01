@@ -30,22 +30,10 @@ export interface SuggestionIn {
   instagram?: string | null
 }
 
-export interface VisitDayOut {
-  day: string
-  count: number
-}
-
-export interface VisitsAdminOut {
-  total: number
-  today: number
-  days: VisitDayOut[]
-}
-
 export interface DashboardOut {
   days: DayOut[]
   pending: SuggestionOut[]
   archive: SuggestionOut[]
-  visits: VisitsAdminOut
 }
 
 export const ADMIN_KEY = 'tph_admin_key'
@@ -98,17 +86,6 @@ export const api = {
     }),
   getSuggestions: (adminKey: string, status?: 'pending' | 'solved') =>
     request<SuggestionOut[]>(`/admin/suggestions${status ? `?status=${status}` : ''}`, {
-      headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-    }),
-  registerVisit: () => {
-    const adminKey = localStorage.getItem(ADMIN_KEY)
-    return request<{ ok: boolean }>('/visits', {
-      method: 'POST',
-      headers: jsonHeaders(adminKey ? { 'X-Admin-Key': adminKey } : undefined),
-    })
-  },
-  getVisits: (adminKey: string) =>
-    request<VisitsAdminOut>('/admin/visits', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
   getDashboard: (adminKey: string) =>
