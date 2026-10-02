@@ -1,6 +1,11 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+# Limites de tamanho: cortam spam/abusos antes de chegar no banco.
+MAX_ORGANIZER = 80  # casa com String(80) do model
+MAX_INSTAGRAM = 300  # casa com String(300) do model
+MAX_NOTE = 2000
 
 
 class DayOut(BaseModel):
@@ -27,8 +32,8 @@ class HomeOut(BaseModel):
 
 class SuggestionIn(BaseModel):
     day: date
-    organizer: str
-    instagram: str | None = None
+    organizer: str = Field(min_length=1, max_length=MAX_ORGANIZER)
+    instagram: str | None = Field(default=None, max_length=MAX_INSTAGRAM)
 
 
 class SuggestionOut(BaseModel):
@@ -48,8 +53,8 @@ class SuggestionOut(BaseModel):
 
 class DaySetIn(BaseModel):
     has_palquinho: bool
-    note: str | None = None
-    instagram: str | None = None
+    note: str | None = Field(default=None, max_length=MAX_NOTE)
+    instagram: str | None = Field(default=None, max_length=MAX_INSTAGRAM)
 
 
 class DashboardOut(BaseModel):

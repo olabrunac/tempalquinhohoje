@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, ADMIN_KEY, ApiError, type DayOut, type SuggestionOut } from './api'
+import { api, ApiError, type DayOut, type SuggestionOut } from './api'
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -29,10 +29,13 @@ function buildCells(year: number, month: number): (Date | null)[] {
 }
 
 export default function AdminScreen() {
-  const [adminKey, setAdminKey] = useState<string>(() => localStorage.getItem(ADMIN_KEY) ?? '')
+  // A senha fica só na memória do React (não vai pro localStorage/sessionStorage):
+  // qualquer script injetado na página não consegue ler a variável do storage.
+  // Efeito colateral: ao fechar/recarregar a aba, precisa logar de novo.
+  const [adminKey, setAdminKey] = useState<string>('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
-  const [checking, setChecking] = useState(!!localStorage.getItem(ADMIN_KEY))
+  const [checking, setChecking] = useState(false)
 
   const now = new Date()
   const [month, setMonth] = useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -59,7 +62,6 @@ export default function AdminScreen() {
     loadData(adminKey)
       .catch((e: Error) => {
         if (e instanceof ApiError && e.status === 401) {
-          localStorage.removeItem(ADMIN_KEY)
           setAdminKey('')
         }
       })
@@ -73,18 +75,21 @@ export default function AdminScreen() {
     setBusy(true)
     try {
       await loadData(password.trim())
-      localStorage.setItem(ADMIN_KEY, password.trim())
       setAdminKey(password.trim())
       setPassword('')
     } catch (err) {
-      setLoginError(err instanceof ApiError && err.status === 401 ? 'senha errada!' : err instanceof Error ? err.message : 'deu ruim')
+      const msg = err instanceof ApiError && err.status === 401
+        ? 'senha errada!'
+        : err instanceof ApiError && err.status === 429
+          ? 'muitas tentativas, espera alguns minutos'
+          : err instanceof Error ? err.message : 'deu ruim'
+      setLoginError(msg)
     } finally {
       setBusy(false)
     }
   }
 
   const logout = () => {
-    localStorage.removeItem(ADMIN_KEY)
     setAdminKey('')
     setDays([])
     setSuggestions([])
