@@ -59,43 +59,48 @@ def draw_thumb(draw, cx, cy, scale, up=True):
         )
 
 
+def split_x(y: float) -> float:
+    """X da divisoria diagonal no ponto y. Vai de W (topo direita) ate 0 (base esquerda)."""
+    return W * (1.0 - y / H)
+
+
 def main():
     img = Image.new("RGB", (W, H), INK)
     d = ImageDraw.Draw(img)
 
-    # metade esquerda verde, metade direita vermelha
-    half = W // 2
-    d.rectangle([0, 0, half - 1, H], fill=GREEN)
-    d.rectangle([half, 0, W, H], fill=RED)
+    # divisao diagonal: verde no triangulo de cima-esquerda, vermelho embaixo-direita
+    for y in range(H):
+        xb = split_x(y)
+        d.line([(0, y), (xb, y)], fill=GREEN)
+        d.line([(xb, y), (W, y)], fill=RED)
 
-    # divisoria central
-    d.rectangle([half - 3, 0, half + 2, H], fill=INK)
+    # linha divisoria preta sobre a diagonal
+    d.line([(W, 0), (0, H)], fill=INK, width=6)
 
-    # texto SIM / NAO
     try:
         from PIL import ImageFont
 
-        font_big = ImageFont.truetype("arialbd.ttf", 190)
-        font_sub = ImageFont.truetype("arial.ttf", 46)
+        font_big = ImageFont.truetype("arialbd.ttf", 150)
+        font_sub = ImageFont.truetype("arial.ttf", 38)
     except Exception:
         font_big = ImageFont.load_default()
         font_sub = ImageFont.load_default()
 
-    for cx, label, sub, up in ((half // 2, "SIM", "tem palquinho", True), (half + half // 2, "NAO", "sem palquinho", False)):
-        # polegar
-        draw_thumb(d, cx, 215, 1.9, up=up)
-        # titulo
-        bbox = d.textbbox((0, 0), label, font=font_big)
-        d.text((cx - (bbox[2] - bbox[0]) / 2, 330), label, font=font_big, fill="#ffffff")
-        # subtitulo
-        bbox2 = d.textbbox((0, 0), sub, font=font_sub)
-        d.text((cx - (bbox2[2] - bbox2[0]) / 2, 540), sub, font=font_sub, fill="#ffffff")
+    def label(cx, cy, big, small):
+        draw_thumb(d, cx, cy, 1.6, up=big)
+        bbox = d.textbbox((0, 0), "SIM" if big else "NAO", font=font_big)
+        d.text((cx - (bbox[2] - bbox[0]) / 2, cy + 70), "SIM" if big else "NAO", font=font_big, fill="#ffffff")
+        bbox2 = d.textbbox((0, 0), small, font=font_sub)
+        d.text((cx - (bbox2[2] - bbox2[0]) / 2, cy + 165), small, font=font_sub, fill="#ffffff")
+
+    label(W * 0.26, H * 0.30, True, "tem palquinho")
+    label(W * 0.74, H * 0.72, False, "sem palquinho")
 
     # marca d'agua com o nome do site
     try:
-        font_wm = ImageFont.truetype("arialbd.ttf", 40)
+        font_wm = ImageFont.truetype("arialbd.ttf", 36)
         bbox3 = d.textbbox((0, 0), "tem palquinho hoje?", font=font_wm)
-        d.text((W - (bbox3[2] - bbox3[0]) - 36, H - 68), "tem palquinho hoje?", font=font_wm, fill="#ffffff")
+        d.text((W - (bbox3[2] - bbox3[0]) - 36, H - 62), "tem palquinho hoje?", font=font_wm, fill="#ffffff")
     except Exception:
         pass
 
