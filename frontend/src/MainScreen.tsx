@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { api, type DayOut, type TodayOut } from './api'
 import { setFavicon } from './favicon'
+import { VERSION } from './version'
 import SuggestionModal from './SuggestionModal'
 
 const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -259,6 +260,8 @@ export default function MainScreen() {
           outros eventos
         </Link>
       </div>
+
+      <span className="app-version">v{VERSION}</span>
 
       {showSuggestion && (
         <SuggestionModal

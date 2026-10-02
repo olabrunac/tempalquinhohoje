@@ -267,6 +267,18 @@ body {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
 }
 
+.app-version {
+  position: fixed;
+  bottom: 0.4rem;
+  left: 0.6rem;
+  z-index: 10;
+  font-size: 0.6rem;
+  color: #4b5563;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
 .btn {
   border: none;
   border-radius: 12px;
