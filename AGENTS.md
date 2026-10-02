@@ -55,7 +55,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Opcional**: domínio customizado no Vercel.
 
 ## Convenções
-- **Versão (`frontend/src/version.ts`)**: **todo deploy em `main` sobe +0.1** (`1.0 -> 1.1 -> 1.2`). Bump é parte do deploy, não é opcional — se mudar algo em `main` e a versão não subiu, faltou. Só vira `2.0` (ou `X.0`) em mudança grande/quebradora. Exibida discretamente no canto superior esquerdo da tela principal.
+- **Versão (`frontend/src/version.ts`)**: **sobe +0.1 a cada deploy em `main` que tenha mudança visível** (`1.0 -> 1.1 -> 1.2`). Bump é parte do deploy — se mudou algo que o usuário vê (tela, texto, CSS, imagem de preview, `index.html`), sobe a versão junto. Deploy só de backend (endpoint, regra de negócio, bug que o usuário não vê) **não** mexe na versão. Só vira `2.0` (ou `X.0`) em mudança grande/quebradora. Exibida discretamente no canto superior esquerdo da tela principal.
 - **Campo do domínio**: `has_palquinho` (bool) — mesmo no frontend.
 - **Status de sugestão**: `pending` / `solved`; **action**: `confirm` / `dismiss` — mesmo no frontend.
 - **Sem framework CSS pesado** — app pequeno, CSS puro já basta.
