@@ -31,7 +31,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
     - `DELETE /admin/{day}` → desmarca o dia.
     - `GET /admin/dashboard` → uma requisição só: `{ days, pending, archive }` — o painel admin usa esse (1 cold start, não 3 requisições).
 - **Settings** (`backend/app/settings.py`): `DATABASE_URL`, `ADMIN_PASSWORD`, `RUN_MIGRATIONS` (bool, default `true`) via pydantic-settings (env da Vercel em prod).
-- **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`; inclui só o router `palquinho`. Também tem `GET /api/v1/health` (com ping no banco) e `GET /api/cron/warmup` (SELECT 1 — pensado pra pinger externo).
+- **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`; inclui só o router `palquinho`. Também tem `GET /api/v1/health` (com ping no banco). O `/api/cron/warmup` está **comentado** — manter o compute do Neon sempre ligado consome os 100 CU-h/mês do Free; o scale-to-zero do Neon já resolve (custo de ~0,3-0,5s na 1ª visita após 5 min parado).
 - **Cold start otimizado** (`backend/app/db.py`): `init_db()` no prod faz só um **precheck barato** (query única em `information_schema`) e pula o DDL se o schema já estiver certo. No dev (SQLite) e se houver coluna nova, roda `create_all` + `_ensure_column`. Pra desligar o init_db de vez no cold start, setar `RUN_MIGRATIONS=false` nos env da Vercel — nesse caso o schema é responsabilidade do admin (rodar com `true` quando mudar de schema).
 
 ## Importante (comportamento)

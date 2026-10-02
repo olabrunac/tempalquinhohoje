@@ -29,18 +29,20 @@ def _startup() -> None:
 
 @app.get("/api/v1/health")
 def health(db: Session = Depends(get_db)) -> dict:
-    """Health com ping no banco — mantém a conexão do Neon aquecida em pingers externos."""
+    """Health com ping no banco. Também serve como pinger externo do Neon."""
     db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "ok"}
 
 
-@app.get("/api/cron/warmup")
-def warmup(db: Session = Depends(get_db)) -> dict:
-    """Warm up: consulta leve pra esquentar a função e segurar conexão do Neon aberta.
-
-    Na Vercel Hobby o cron só roda 1x/dia, então use um pinger externo
-    (ex.: UptimeRobot, 5 em 5 min) apontando pra cá. Em planos Pro dá pra
-    adicionar via vercel.json: "crons": [{ "path": "/api/cron/warmup", "schedule": "*/5 * * * *" }].
-    """
-    db.execute(text("SELECT 1"))
-    return {"ok": True}
+# Warmup desativado por padrão: mantém o compute do Neon sempre ligado e consome
+# os 100 CU-hours/mês do plano Free. O scale-to-zero do Neon já resolve — a primeira
+# visita após 5 min parado custa ~0,3-0,5s a mais, imperceptível pro usuário.
+#
+# Se algum dia precisar, descomente o endpoint abaixo e aponte um pinger externo
+# (ex.: UptimeRobot) pra cá. Prefira intervalo grande (15-30 min) pra não queimar cota.
+#
+# @app.get("/api/cron/warmup")
+# def warmup(db: Session = Depends(get_db)) -> dict:
+#     """Ping leve no banco: esquenta a função e segura a conexão do Neon aberta."""
+#     db.execute(text("SELECT 1"))
+#     return {"ok": True}

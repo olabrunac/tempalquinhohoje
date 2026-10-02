@@ -72,7 +72,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">envie sua sugestão de rolê!</h2>
-        <p className="modal-sub">mande aqui as infos do palquinho/evento que iremos confirmar e publicar</p>
+        <p className="modal-sub">mande aqui as infos do palquinho/evento que vc sabe que vai ter ou quer divulgar que iremos confirmar ele e publicar</p>
 
         <div className="mini-cal">
           <div className="mini-cal-nav">
@@ -119,12 +119,12 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
             })}
           </div>
         </div>
-        {day && <p className="mini-cal-date">data: {fmtDay(day)}</p>}
+        {day && <p className="mini-cal-date">{fmtDay(day)}</p>}
 
         <input
           className="input"
           type="text"
-          placeholder="organizador(a)"
+          placeholder="nome do evento e quem ta organizando"
           maxLength={80}
           value={organizer}
           onChange={(e) => setOrganizer(e.target.value)}
