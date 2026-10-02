@@ -1,113 +1,102 @@
-"""Gera a imagem de preview (OG image) do site: metade SIM (verde) / metade NAO (vermelho).
+"""Gera a imagem de preview (OG image) do site: quadrada, dividida na diagonal
+com o polegar do favicon verde (SIM) e vermelho (NAO).
 
 Uso: python backend/make_og_image.py
-Saida: frontend/public/og.png (1200x630, padrão de OG image).
+Saida: frontend/public/og.png (1200x1200, quadrado).
 """
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
-W, H = 1200, 630
+SIZE = 1200
 GREEN = "#16a34a"
 RED = "#dc2626"
 INK = "#0b0b0b"
+WHITE = "#ffffff"
 
-THUMB_UP = [
-    # (x, y) em coordenadas 0..100, mesmo desenho do favicon
-    (32, 50, 38, 81),  # placeholder, substituido abaixo
+# arte do polegar em coordenadas 0..100 (mesma do favicon.ts)
+THUMB_PATH = [
+    (32, 50), (32, 75), (38, 81), (65, 81), (70, 81), (74, 77), (75, 72),
+    (81, 48), (82, 42), (77, 37), (71, 37), (57, 37), (59, 33), (60, 25),
+    (57, 20), (55, 17), (50, 17), (48, 21), (45, 27), (43, 36), (38, 42),
+    (32, 45), (32, 50),
 ]
+THUMB_BAR = [(20, 46), (29, 81)]
 
 
-def rounded_rect(draw, box, radius, fill):
-    draw.rounded_rectangle(box, radius=radius, fill=fill)
-
-
-def draw_thumb(draw, cx, cy, scale, up=True):
-    """Desenha o mesmo polegar do favicon, centralizado em (cx, cy)."""
-    # caminho do polegar em coordenadas 0..100 (mesma arte do favicon.ts)
-    path = [
-        (32, 50), (32, 75), (38, 81), (65, 81), (70, 81), (74, 77), (75, 72),
-        (81, 48), (82, 42), (77, 37), (71, 37), (57, 37), (59, 33), (60, 25),
-        (57, 20), (55, 17), (50, 17), (48, 21), (45, 27), (43, 36), (38, 42),
-        (32, 45), (32, 50),
-    ]
-    bar = [(20, 46), (29, 81)]
-
+def draw_thumb(d, cx, cy, scale, up=True):
+    """Polegar do favicon, centralizado em (cx, cy). up=False espelha 180 graus."""
     def place(pts):
-        out = []
-        for pt in pts:
-            x, y = pt[0], pt[1]
-            nx = cx + (x - 50) * scale
-            ny = cy + (y - 49) * scale
-            out.append((nx, ny))
-        return out
+        return [(cx + (p[0] - 50) * scale, cy + (p[1] - 49) * scale) for p in pts]
 
     if up:
-        draw.polygon(place(path), fill="#ffffff")
-        p = place(bar)
-        draw.rectangle([p[0][0], p[0][1], p[1][0], p[1][1]], fill="#ffffff")
+        d.polygon(place(THUMB_PATH), fill=WHITE)
+        p = place(THUMB_BAR)
+        d.rectangle([p[0][0], p[0][1], p[1][0], p[1][1]], fill=WHITE)
     else:
-        # mesma arte rotacionada 180 graus (igual ao favicon do NAO)
-        pts = place(path)
-        rot = [(2 * cx - x, 2 * cy - y) for (x, y) in pts]
-        draw.polygon(rot, fill="#ffffff")
-        p = place(bar)
-        draw.rectangle(
+        d.polygon([(2 * cx - x, 2 * cy - y) for x, y in place(THUMB_PATH)], fill=WHITE)
+        p = place(THUMB_BAR)
+        d.rectangle(
             [2 * cx - p[1][0], 2 * cy - p[1][1], 2 * cx - p[0][0], 2 * cy - p[0][1]],
-            fill="#ffffff",
+            fill=WHITE,
         )
 
 
-def split_x(y: float) -> float:
-    """X da divisoria diagonal no ponto y. Vai de W (topo direita) ate 0 (base esquerda)."""
-    return W * (1.0 - y / H)
+def font(size, bold=True):
+    for name in (("arialbd.ttf", "arial.ttf") if bold else ("arial.ttf",)):
+        try:
+            return ImageFont.truetype(name, size)
+        except Exception:
+            continue
+    return ImageFont.load_default()
+
+
+def split_x(y):
+    """X da diagonal em y: (SIZE, 0) topo-direita -> (0, SIZE) base-esquerda."""
+    return SIZE * (1.0 - y / SIZE)
 
 
 def main():
-    img = Image.new("RGB", (W, H), INK)
+    img = Image.new("RGB", (SIZE, SIZE), INK)
     d = ImageDraw.Draw(img)
 
-    # divisao diagonal: verde no triangulo de cima-esquerda, vermelho embaixo-direita
-    for y in range(H):
+    # fills: verde acima-esquerda, vermelho abaixo-direita
+    for y in range(SIZE):
         xb = split_x(y)
         d.line([(0, y), (xb, y)], fill=GREEN)
-        d.line([(xb, y), (W, y)], fill=RED)
+        d.line([(xb, y), (SIZE, y)], fill=RED)
 
-    # linha divisoria preta sobre a diagonal
-    d.line([(W, 0), (0, H)], fill=INK, width=6)
+    d.line([(SIZE, 0), (0, SIZE)], fill=INK, width=8)
 
-    try:
-        from PIL import ImageFont
+    f_word = font(200)
 
-        font_big = ImageFont.truetype("arialbd.ttf", 150)
-        font_sub = ImageFont.truetype("arial.ttf", 38)
-    except Exception:
-        font_big = ImageFont.load_default()
-        font_sub = ImageFont.load_default()
+    def bloco(cx, cy, up, word):
+        """Polegar + palavra empilhados, espelhados entre si pela diagonal."""
+        scale = 3.0
+        half_t = (81 - 17) * scale / 2  # altura/2 do polegar
+        half_w = (82 - 20) * scale / 2  # largura/2 do polegar
+        bbox = d.textbbox((0, 0), word, font=f_word)
+        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-    def label(cx, cy, big, small):
-        draw_thumb(d, cx, cy, 1.6, up=big)
-        bbox = d.textbbox((0, 0), "SIM" if big else "NAO", font=font_big)
-        d.text((cx - (bbox[2] - bbox[0]) / 2, cy + 70), "SIM" if big else "NAO", font=font_big, fill="#ffffff")
-        bbox2 = d.textbbox((0, 0), small, font=font_sub)
-        d.text((cx - (bbox2[2] - bbox2[0]) / 2, cy + 165), small, font=font_sub, fill="#ffffff")
+        if up:
+            # polegar acima, texto abaixo
+            draw_thumb(d, cx, cy - 40, scale, up=True)
+            tx, ty = cx - tw / 2 - bbox[0], cy + 40
+        else:
+            # texto acima, polegar abaixo (espelho do verde)
+            tx, ty = cx - tw / 2 - bbox[0], cy - 40 - th
+            draw_thumb(d, cx, cy + 40 + th / 2, scale, up=False)
+        d.text((tx, ty), word, font=f_word, fill=WHITE)
 
-    label(W * 0.26, H * 0.30, True, "tem palquinho")
-    label(W * 0.74, H * 0.72, False, "sem palquinho")
-
-    # marca d'agua com o nome do site
-    try:
-        font_wm = ImageFont.truetype("arialbd.ttf", 36)
-        bbox3 = d.textbbox((0, 0), "tem palquinho hoje?", font=font_wm)
-        d.text((W - (bbox3[2] - bbox3[0]) - 36, H - 62), "tem palquinho hoje?", font=font_wm, fill="#ffffff")
-    except Exception:
-        pass
+    # centroides dos triangulos: verde (400,400), vermelho (800,800)
+    bloco(SIZE * 0.30, SIZE * 0.32, True, "SIM")
+    bloco(SIZE * 0.70, SIZE * 0.68, False, "NAO")
 
     out = Path(__file__).resolve().parent.parent / "frontend" / "public" / "og.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG", optimize=True)
-    print(f"gerado: {out} ({W}x{H})")
+    print(f"gerado: {out} ({SIZE}x{SIZE})")
 
 
 if __name__ == "__main__":
