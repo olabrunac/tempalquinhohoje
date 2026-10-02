@@ -1,79 +1,61 @@
 """Gera a imagem de preview (OG image) do site: quadrada, fundo preto, com os
 dois polegares grandes centralizados lado a lado (verde SIM, vermelho NAO).
 
-use a mesma arte do favicon em frontend/src/favicon.ts (mesmo path e mesmo rect
-da barra, para o polegar ficar identico ao icone do site).
-
 Uso: python backend/make_og_image.py
 Saida: frontend/public/og.png (1200x1200, quadrado).
 """
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 SIZE = 1200
 GREEN = "#16a34a"
 RED = "#dc2626"
 BLACK = "#000000"
-WHITE = "#ffffff"
 
-# viewBox 0 0 100 100, igual ao favicon
-VIEWBOX = 100.0
-
-# mesmo path do favicon.ts, em pontos (o path e a barra da barra lateral)
-FAVICON_THUMB = [
+# arte do polegar em coordenadas 0..100 (mesma do favicon.ts)
+THUMB_PATH = [
     (32, 50), (32, 75), (38, 81), (65, 81), (70, 81), (74, 77), (75, 72),
     (81, 48), (82, 42), (77, 37), (71, 37), (57, 37), (59, 33), (60, 25),
     (57, 20), (55, 17), (50, 17), (48, 21), (45, 27), (43, 36), (38, 42),
-    (32, 45),
+    (32, 45), (32, 50),
 ]
-FAVICON_BAR = {"x": 20, "y": 46, "w": 9, "h": 35, "rx": 3}
+THUMB_BAR = [(20, 46), (29, 81)]
+
+# centro da arte do polegar nas coordenadas 0..100
+THUMB_CX, THUMB_CY = 51.0, 49.0
 
 
-def draw_favicon_thumb(d, cx, cy, height, bg, up=True):
-    """Desenha o favicon inteiro (fundo arredondado + polegar) no tamanho height,
-    centralizado em (cx, cy). up=False gira 180 graus, como o favicon faz."""
-    scale = height / VIEWBOX
-    ox = cx - VIEWBOX * scale / 2
-    oy = cy - VIEWBOX * scale / 2
+def draw_thumb(d, cx, cy, height, color, up=True):
+    """Polegar com a altura dada em px, centralizado em (cx, cy). up=False gira 180 graus."""
+    scale = height / (81 - 17)
 
-    def pt(x, y):
-        return (ox + x * scale, oy + y * scale)
+    def place(pts):
+        return [(cx + (p[0] - THUMB_CX) * scale, cy + (p[1] - THUMB_CY) * scale) for p in pts]
 
-    if not up:
-        def pt(x, y):
-            return (ox + (VIEWBOX - x) * scale, oy + (VIEWBOX - y) * scale)
-
-    # fundo arredondado
-    r = 24 * scale
-    d.rounded_rectangle(
-        [ox, oy, ox + VIEWBOX * scale, oy + VIEWBOX * scale],
-        radius=r,
-        fill=bg,
-    )
-
-    # arte do polegar: mesma geometria do favicon.ts
-    d.polygon([pt(x, y) for x, y in FAVICON_THUMB], fill=WHITE)
-    bx, by = FAVICON_BAR["x"], FAVICON_BAR["y"]
-    p1 = pt(bx, by)
-    p2 = pt(bx + FAVICON_BAR["w"], by + FAVICON_BAR["h"])
-    d.rounded_rectangle(
-        [min(p1[0], p2[0]), min(p1[1], p2[1]), max(p1[0], p2[0]), max(p1[1], p2[1])],
-        radius=FAVICON_BAR["rx"] * scale,
-        fill=WHITE,
-    )
+    if up:
+        d.polygon(place(THUMB_PATH), fill=color)
+        p = place(THUMB_BAR)
+        d.rectangle([p[0][0], p[0][1], p[1][0], p[1][1]], fill=color)
+    else:
+        d.polygon([(2 * cx - x, 2 * cy - y) for x, y in place(THUMB_PATH)], fill=color)
+        p = place(THUMB_BAR)
+        d.rectangle(
+            [2 * cx - p[1][0], 2 * cy - p[1][1], 2 * cx - p[0][0], 2 * cy - p[0][1]],
+            fill=color,
+        )
 
 
 def main():
     img = Image.new("RGB", (SIZE, SIZE), BLACK)
     d = ImageDraw.Draw(img)
 
-    # dois favicons grandes, centralizados verticalmente e lado a lado
-    box = 500
+    # dois polegares grandes, centralizados verticalmente e lado a lado
+    thumb_h = 500
     cy = SIZE / 2
-    draw_favicon_thumb(d, SIZE * 0.265, cy, box, GREEN, up=True)
-    draw_favicon_thumb(d, SIZE * 0.735, cy, box, RED, up=False)
+    draw_thumb(d, SIZE * 0.265, cy, thumb_h, GREEN, up=True)
+    draw_thumb(d, SIZE * 0.735, cy, thumb_h, RED, up=False)
 
     out = Path(__file__).resolve().parent.parent / "frontend" / "public" / "og.png"
     out.parent.mkdir(parents=True, exist_ok=True)
