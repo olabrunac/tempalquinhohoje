@@ -1,17 +1,41 @@
+import secrets
 from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..db import get_db
 from ..localtime import today_local
+from ..ratelimit import client_ip, limiter
 from ..settings import settings
 
 
-def require_admin(x_admin_key: str | None = Header(default=None)) -> None:
-    if not x_admin_key or x_admin_key != settings.ADMIN_PASSWORD:
+def require_admin(request: Request, x_admin_key: str | None = Header(default=None)) -> None:
+    """Checa a senha do admin com rate limit por IP.
+
+    A comparação usa secrets.compare_digest pra não vazar o valor por tempo.
+    O rate limit conta tentativas (chamadas a /admin/*), então um admin que usa
+    o painel de verdade também conta — o limite é folgado o bastante pra isso.
+    """
+    ip = client_ip(request)
+    bucket = f"admin:{ip}"
+    allowed, _, retry_after = limiter.check(bucket, 20, 300.0)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas. Tente novamente em alguns minutos.",
+            headers={"Retry-After": str(int(retry_after) + 1)},
+        )
+
+    expected = settings.ADMIN_PASSWORD
+    given = x_admin_key or ""
+    # compare_digest exige str ASCII de mesmo encoding; normaliza com segurança
+    if not secrets.compare_digest(given.encode("utf-8"), expected.encode("utf-8")):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin não autorizado")
+
+    # autenticado: zera o contador pra não penalizar quem entrou certo
+    limiter.reset(bucket)
 
 
 router = APIRouter()
@@ -50,12 +74,24 @@ def list_days(db: Session = Depends(get_db)):
 
 
 @router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
-def create_suggestion(payload: schemas.SuggestionIn, db: Session = Depends(get_db)):
-    """Amigo manda uma sugestão anônima: 'dia X tem palquinho, organizador Y'."""
+def create_suggestion(payload: schemas.SuggestionIn, request: Request, db: Session = Depends(get_db)):
+    """Amigo manda uma sugestão anônima: 'dia X tem palquinho, organizador Y'.
+
+    Público, então tem rate limit por IP pra evitar spam.
+    """
+    ip = client_ip(request)
+    allowed, _, retry_after = limiter.check(f"suggest:{ip}", 5, 3600.0)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Você já enviou várias sugestões. Tente mais tarde.",
+            headers={"Retry-After": str(int(retry_after) + 1)},
+        )
+
     row = models.PalquinhoSuggestion(
         day=payload.day,
-        organizer=payload.organizer,
-        instagram=payload.instagram,
+        organizer=payload.organizer.strip(),
+        instagram=(payload.instagram or "").strip() or None,
     )
     db.add(row)
     db.commit()

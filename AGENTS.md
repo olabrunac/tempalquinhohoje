@@ -30,7 +30,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
     - `PUT /admin/{day}` `{ has_palquinho, note?, instagram? }` → marca SIM **ou NÃO** (upsert).
     - `DELETE /admin/{day}` → desmarca o dia.
     - `GET /admin/dashboard` → uma requisição só: `{ days, pending, archive }` — o painel admin usa esse (1 cold start, não 3 requisições).
-- **Settings** (`backend/app/settings.py`): `DATABASE_URL`, `ADMIN_PASSWORD`, `RUN_MIGRATIONS` (bool, default `true`) via pydantic-settings (env da Vercel em prod).
+- **Settings** (`backend/app/settings.py`): `DATABASE_URL`, `ADMIN_PASSWORD`, `ENVIRONMENT` (`dev`/`prod` — em prod desliga `/docs`), `RUN_MIGRATIONS` (bool, default `true`) via pydantic-settings (env da Vercel em prod).
 - **Main** (`backend/app/main.py`): FastAPI + CORS + `@app.on_event("startup")` → `init_db()`; inclui só o router `palquinho`. Também tem `GET /api/v1/health` (com ping no banco). O `/api/cron/warmup` está **comentado** — manter o compute do Neon sempre ligado consome os 100 CU-h/mês do Free; o scale-to-zero do Neon já resolve (custo de ~0,3-0,5s na 1ª visita após 5 min parado).
 - **Cold start otimizado** (`backend/app/db.py`): `init_db()` no prod faz só um **precheck barato** (query única em `information_schema`) e pula o DDL se o schema já estiver certo. No dev (SQLite) e se houver coluna nova, roda `create_all` + `_ensure_column`. Pra desligar o init_db de vez no cold start, setar `RUN_MIGRATIONS=false` nos env da Vercel — nesse caso o schema é responsabilidade do admin (rodar com `true` quando mudar de schema).
 
@@ -55,6 +55,10 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Opcional**: domínio customizado no Vercel.
 
 ## Convenções
+- **Segurança (não quebrar)**: `POST /suggestions` é público e tem rate limit por IP (5/hora). Rotas `/admin/*` usam `require_admin` com rate limit por IP (20 req/5min) + `secrets.compare_digest`. Senha do admin **nunca** vai pro `localStorage` — fica só na memória do React (`AdminScreen.tsx`), então recarregar a página exige logar de novo (intencional). Em `ENVIRONMENT=prod`, `/docs` e `/openapi.json` ficam desligados. Headers de segurança (`X-Frame-Options: DENY`, `nosniff`, `frame-ancestors 'none'`) são adicionados pelo middleware em `main.py`.
+- **Rate limit é em memória** (`backend/app/ratelimit.py`): protege contra ataque pequeno/bot, mas morre no cold start e não é compartilhado entre instâncias serverless. Se precisar de garantia real, o próximo passo é persistir tentativas no Postgres (tabela `login_attempt`) ou limitador na borda (Vercel WAF / Cloudflare).
+- **Limites de tamanho** nos payloads (`schemas.py`): `organizer` 80, `instagram` 300, `note` 2000 — casa com as colunas do model e corta abuso antes do banco.
+- **Testes de segurança**: `python backend/test_seguranca.py` roda uma bateria (rate limit, auth, limites, headers) com SQLite temporário. Não precisa instalar nada a mais.
 - **Versão (`frontend/src/version.ts`)**: **sobe +0.1 a cada deploy em `main` que tenha mudança visível** (`1.0 -> 1.1 -> 1.2`). Bump é parte do deploy — se mudou algo que o usuário vê (tela, texto, CSS, imagem de preview, `index.html`), sobe a versão junto. Deploy só de backend (endpoint, regra de negócio, bug que o usuário não vê) **não** mexe na versão. Só vira `2.0` (ou `X.0`) em mudança grande/quebradora. Exibida discretamente no canto superior esquerdo da tela principal.
 - **Campo do domínio**: `has_palquinho` (bool) — mesmo no frontend.
 - **Status de sugestão**: `pending` / `solved`; **action**: `confirm` / `dismiss` — mesmo no frontend.

@@ -36,8 +36,6 @@ export interface DashboardOut {
   archive: SuggestionOut[]
 }
 
-export const ADMIN_KEY = 'tph_admin_key'
-
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
 
 export class ApiError extends Error {
