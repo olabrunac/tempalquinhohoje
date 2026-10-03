@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { api, type DayOut, type EventItem, type TodayOut } from './api'
 import { setFavicon } from './favicon'
@@ -70,6 +70,7 @@ function fitWeekGap(el: HTMLElement) {
 }
 
 export default function MainScreen() {
+  const navigate = useNavigate()
   const weekRef = useRef<HTMLElement>(null)
   const confettiFired = useRef(false)
   const [today, setToday] = useState<TodayOut | null>(null)
@@ -78,6 +79,20 @@ export default function MainScreen() {
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showSuggestion || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+      if (e.key === 'ç' || e.key === 'Ç') {
+        e.preventDefault()
+        navigate('/admin')
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [navigate, showSuggestion])
 
   const [weekStart, setWeekStart] = useState<Date>(() => {
     const t = new Date()
