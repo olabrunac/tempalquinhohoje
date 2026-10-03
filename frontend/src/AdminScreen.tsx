@@ -321,9 +321,9 @@ const setDay = async (has: boolean, isOther: boolean) => {
             {!selectedDay && <p className="muted">clica num dia do calendário pra ver a prévia de como ele aparece no site.</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : 'var(--green)' }}>
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : previewState === 'yes' ? 'var(--green)' : 'var(--red)' }}>
                   {previewState === 'yes'
-                    ? 'Tem palquinho confirmado'
+                    ? 'SIMMMM tem palquinho!!!!'
                     : previewState === 'other'
                       ? 'Tem rolê confirmado!!!'
                       : 'NÃO tem palquinho'}
@@ -361,7 +361,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : undefined }}>
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : previewState === 'yes' ? 'var(--green)' : 'var(--red)' }}>
                   {previewState === 'yes'
                     ? 'marcado: palquinho SIM'
                     : previewState === 'other'

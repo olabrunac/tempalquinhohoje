@@ -136,7 +136,7 @@ export default function EventsScreen() {
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
               <p className="current-status" style={{ color: selectedDay.is_other_event ? 'var(--orange)' : 'var(--green)' }}>
-                {selectedDay.has_palquinho ? 'Tem palquinho confirmado' : 'Tem rolê confirmado!!!'}
+                {selectedDay.has_palquinho ? 'SIMMMM tem palquinho!!!!' : 'Tem rolê confirmado!!!'}
               </p>
               <div className="event-cards">
                 {selectedDay.events.map((e) => (
