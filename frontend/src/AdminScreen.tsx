@@ -280,6 +280,45 @@ export default function AdminScreen() {
             <span style={{ color: 'var(--orange)' }}>outro evento</span>
             <span className="legend-null">vazio</span>
           </div>
+
+          {/* Prévia do dia selecionado: mostra como fica na página pública de eventos,
+              refletindo o que está sendo digitado (rascunho), antes de salvar. */}
+          <div className="panel" style={{ marginTop: '1rem' }}>
+            <h3 className="panel-title">{selectedDay ? `prévia — ${fmtPt(selectedDay)}` : 'prévia do evento'}</h3>
+            {!selectedDay && <p className="muted">clica num dia do calendário pra ver a prévia de como ele aparece no site.</p>}
+            {selectedDay && (
+              <>
+                <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
+                  {selected ? (!selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'Tem rolê confirmado!!!' : 'Tem palquinho confirmado') : 'vai aparecer assim que salvar'}
+                </p>
+                {noteDraft.trim() && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                    {noteDraft
+                      .split('\n')
+                      .map((line, idx) => line.trim() && (
+                        <div key={idx} className="muted" style={{ background: '#1f2937', padding: '0.5rem 0.8rem', borderRadius: '8px', color: '#e5e7eb', fontSize: '0.95rem' }}>
+                          {line}
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {instagramDraft.trim() && (
+                  <a
+                    className="event-insta"
+                    style={{ display: 'inline-block', marginTop: '0.5rem', textAlign: 'center' }}
+                    href={instagramDraft.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ver anúncio no instagram ↗
+                  </a>
+                )}
+                {!noteDraft.trim() && !instagramDraft.trim() && (
+                  <p className="muted" style={{ fontSize: '0.9rem' }}>sem nota nem link — só o dia marcado aparece.</p>
+                )}
+              </>
+            )}
+          </div>
         </section>
 
         <section className="panel-col">
