@@ -306,11 +306,13 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra ver a prévia de como ele aparece no site.</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected && !selected.has_palquinho ? 'var(--orange)' : 'var(--green)' }}>
+                <p className="current-status" style={{ color: selected && !selected.has_palquinho && eventDrafts.some((e) => e.note.trim()) ? 'var(--orange)' : 'var(--green)' }}>
                   {selected
                     ? selected.has_palquinho
                       ? 'Tem palquinho confirmado'
-                      : 'Tem rolê confirmado!!!'
+                      : eventDrafts.some((e) => e.note.trim())
+                        ? 'Tem rolê confirmado!!!'
+                        : 'NÃO tem palquinho'
                     : 'vai aparecer assim que salvar'}
                 </p>
                 {eventDrafts.some((e) => e.note.trim()) ? (
@@ -346,8 +348,14 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected && !selected.has_palquinho ? 'var(--orange)' : undefined }}>
-                  {selected ? (selected.has_palquinho ? 'marcado: palquinho SIM' : 'marcado: NÃO (outro rolê)') : 'ainda não marcado'}
+                <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.events.length > 0 ? 'var(--orange)' : undefined }}>
+                  {selected
+                    ? selected.has_palquinho
+                      ? 'marcado: palquinho SIM'
+                      : eventDrafts.some((e) => e.note.trim())
+                        ? 'marcado: NÃO (outro rolê)'
+                        : 'marcado: NÃO'
+                    : 'ainda não marcado'}
                 </p>
 
                 <div className="event-editor">

@@ -100,7 +100,7 @@ export default function EventsScreen() {
                 const isToday = key === todayIso
                 const isSelected = selectedDay?.day === key
                 const hasEvent = !!day
-                const isOther = day && !day.has_palquinho
+                const isOther = day?.has_palquinho === false && day.events.length > 0
 
                 const cls = [
                   'cal-cell',

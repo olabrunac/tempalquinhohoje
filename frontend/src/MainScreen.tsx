@@ -126,7 +126,11 @@ export default function MainScreen() {
   const currentDayData = activeIso === todayIso ? today : dayMap.get(activeIso)
 
   const hasPalquinho = currentDayData?.has_palquinho ?? false
-  const isOther = currentDayData && !currentDayData.has_palquinho
+  // has_palquinho null = não marcado (mostra NÃO). Só vira "outro rolê" (laranja)
+  // quando o admin marcou NÃO **e** tem evento anotado — senão o dia não marcado
+  // cairia no laranja junto.
+  const isOther =
+    currentDayData?.has_palquinho === false && (currentDayData.events?.length ?? 0) > 0
   const loading = !today && !error && activeIso === todayIso
   const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
 
@@ -200,7 +204,7 @@ export default function MainScreen() {
             const key = iso(d)
             const day = dayMap.get(key)
             const has = day?.has_palquinho ?? false
-            const isOtherDay = day && !day.has_palquinho
+            const isOtherDay = day?.has_palquinho === false && day.events.length > 0
             const notas = day?.events.map((e) => e.note).join(' · ')
             const isToday = key === todayIso
             const isPast = key < todayIso
