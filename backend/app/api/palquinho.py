@@ -62,16 +62,21 @@ def _day_out(row: models.PalquinhoDay, events: list[models.PalquinhoEvent]) -> s
     return schemas.DayOut(
         day=row.day,
         has_palquinho=row.has_palquinho,
+        is_other_event=bool(row.is_other_event) and not row.has_palquinho,
         events=[schemas.EventOut.model_validate(e) for e in events],
     )
 
 
-def _upsert_day(db: Session, d: date, has_palquinho: bool) -> models.PalquinhoDay:
+def _upsert_day(
+    db: Session, d: date, has_palquinho: bool, is_other_event: bool = False
+) -> models.PalquinhoDay:
     row = db.query(models.PalquinhoDay).filter_by(day=d).first()
     if row is None:
         row = models.PalquinhoDay(day=d)
         db.add(row)
     row.has_palquinho = has_palquinho
+    # "outro evento" só faz sentido sem palquinho: com SIM o dia é verde de qualquer jeito.
+    row.is_other_event = bool(is_other_event) and not has_palquinho
     return row
 
 
@@ -106,6 +111,7 @@ def get_today(response: Response, db: Session = Depends(get_db)):
     return schemas.TodayOut(
         day=today,
         has_palquinho=row.has_palquinho,
+        is_other_event=bool(row.is_other_event) and not row.has_palquinho,
         events=[schemas.EventOut.model_validate(e) for e in events],
     )
 
@@ -124,6 +130,7 @@ def get_home(response: Response, db: Session = Depends(get_db)):
         else schemas.TodayOut(
             day=today,
             has_palquinho=row.has_palquinho,
+            is_other_event=bool(row.is_other_event) and not row.has_palquinho,
             events=[schemas.EventOut.model_validate(e) for e in grouped.get(today, [])],
         )
     )
@@ -170,7 +177,7 @@ def create_suggestion(payload: schemas.SuggestionIn, request: Request, db: Sessi
 def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
     """Admin marca o dia (SIM ou NÃO) e substitui a lista de eventos."""
     d = date.fromisoformat(day)
-    row = _upsert_day(db, d, payload.has_palquinho)
+    row = _upsert_day(db, d, payload.has_palquinho, payload.is_other_event)
     events = _replace_events(db, d, payload.events)
     db.commit()
     db.refresh(row)
@@ -263,7 +270,7 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
     sug = db.get(models.PalquinhoSuggestion, suggestion_id)
     if sug is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
-    row = _upsert_day(db, sug.day, payload.has_palquinho)
+    row = _upsert_day(db, sug.day, payload.has_palquinho, payload.is_other_event)
     events = _replace_events(db, sug.day, payload.events)
     sug.status = "solved"
     sug.action = "confirm"

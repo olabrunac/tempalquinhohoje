@@ -46,7 +46,7 @@ export default function EventsScreen() {
     api
       .getDays()
       .then((d) => {
-        setDays(d.filter((x) => x.has_palquinho || x.events.length > 0))
+        setDays(d.filter((x) => x.has_palquinho || x.is_other_event))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -100,7 +100,7 @@ export default function EventsScreen() {
                 const isToday = key === todayIso
                 const isSelected = selectedDay?.day === key
                 const hasEvent = !!day
-                const isOther = day?.has_palquinho === false && day.events.length > 0
+                const isOther = day?.has_palquinho === false && day.is_other_event
 
                 const cls = [
                   'cal-cell',
@@ -135,7 +135,7 @@ export default function EventsScreen() {
           {selectedDay && (
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
-              <p className="current-status" style={{ color: selectedDay.has_palquinho ? 'var(--green)' : 'var(--orange)' }}>
+              <p className="current-status" style={{ color: selectedDay.is_other_event ? 'var(--orange)' : 'var(--green)' }}>
                 {selectedDay.has_palquinho ? 'Tem palquinho confirmado' : 'Tem rolê confirmado!!!'}
               </p>
               <div className="event-cards">

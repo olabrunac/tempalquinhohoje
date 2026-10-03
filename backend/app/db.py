@@ -41,12 +41,13 @@ def init_db() -> None:
     _ensure_column("palquinho_suggestion", "instagram", "VARCHAR(300)")
     _ensure_column("palquinho_suggestion", "action", "VARCHAR(10)")
     _ensure_column("palquinho_suggestion", "solved_at", "TIMESTAMP")
+    _ensure_column("palquinho_day", "is_other_event", "BOOLEAN NOT NULL DEFAULT false")
     migrate_day_notes_to_events()
     _schema_checked = True
 
 
 _EXPECTED = {
-    "palquinho_day": {"day", "has_palquinho", "updated_at"},
+    "palquinho_day": {"day", "has_palquinho", "is_other_event", "updated_at"},
     "palquinho_event": {"id", "day", "position", "note", "instagram"},
     "palquinho_suggestion": {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",

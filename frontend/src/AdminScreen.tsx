@@ -51,6 +51,9 @@ export default function AdminScreen() {
   // Rascunho dos eventos do dia selecionado. Cada linha da lista é um evento
   // com nota + link próprios; o id só existe depois de salvo.
   const [eventDrafts, setEventDrafts] = useState<EventDraft[]>([])
+  // Qual dos três botões está selecionado no rascunho (pra prévia refletir a cor
+  // antes de salvar). null = dia ainda não marcado.
+  const [draftState, setDraftState] = useState<'yes' | 'no' | 'other' | null>(null)
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState('')
 
@@ -113,8 +116,13 @@ export default function AdminScreen() {
     setEventDrafts(
       (day?.events ?? []).map((e) => ({ note: e.note, instagram: e.instagram ?? '' }))
     )
+    setDraftState(
+      day ? (day.has_palquinho ? 'yes' : day.is_other_event ? 'other' : 'no') : null
+    )
     setFeedback('')
   }
+
+  
 
   const updateEvent = (idx: number, patch: Partial<EventDraft>) => {
     setEventDrafts((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))
@@ -129,7 +137,11 @@ export default function AdminScreen() {
     setEventDrafts((prev) => prev.filter((_, i) => i !== idx))
   }
 
-  const setDay = async (has: boolean) => {
+  // Três botões porque são três intenções diferentes:
+//   SIM                    → verde, tem palquinho
+//   NÃO                    → vermelho, só pra deixar a nota do dia
+//   NÃO (outro evento)     → laranja, o dia é de outro rolê
+const setDay = async (has: boolean, isOther: boolean) => {
     if (!selectedDay) return
     const comNota = eventDrafts.filter((e) => e.note.trim())
     if (comNota.length > MAX_EVENTS) {
@@ -139,7 +151,7 @@ export default function AdminScreen() {
     setBusy(true)
     setFeedback('')
     try {
-      await api.setDay(selectedDay, has, eventDrafts, adminKey)
+      await api.setDay(selectedDay, has, isOther, eventDrafts, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -231,6 +243,8 @@ export default function AdminScreen() {
   const cells = buildCells(month.year, month.month)
   const selected = selectedDay ? dayMap.get(selectedDay) : undefined
   const todayIso = iso(now)
+  // A prévia e o painel do dia leem o rascunho, que já vem do salvo ao clicar no dia.
+  const previewState: 'yes' | 'no' | 'other' = draftState ?? (selected ? 'no' : 'no')
 
   const nav = (delta: number) => {
     const next = new Date(month.year, month.month + delta, 1)
@@ -276,7 +290,7 @@ export default function AdminScreen() {
               const isSelected = key === selectedDay
               const cls = [
                 'cal-cell',
-                day ? (day.has_palquinho ? 'has-yes' : 'has-no') : '',
+                day ? (day.has_palquinho ? 'has-yes' : day.is_other_event ? 'has-other' : 'has-no') : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -296,6 +310,7 @@ export default function AdminScreen() {
           <div className="legend">
             <span className="legend-yes">SIM</span>
             <span className="legend-no">NÃO</span>
+            <span className="legend-other" style={{ color: 'var(--orange)', fontWeight: 600 }}>outro rolê</span>
             <span className="legend-null">vazio</span>
           </div>
 
@@ -306,14 +321,12 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra ver a prévia de como ele aparece no site.</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected && !selected.has_palquinho && eventDrafts.some((e) => e.note.trim()) ? 'var(--orange)' : 'var(--green)' }}>
-                  {selected
-                    ? selected.has_palquinho
-                      ? 'Tem palquinho confirmado'
-                      : eventDrafts.some((e) => e.note.trim())
-                        ? 'Tem rolê confirmado!!!'
-                        : 'NÃO tem palquinho'
-                    : 'vai aparecer assim que salvar'}
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : 'var(--green)' }}>
+                  {previewState === 'yes'
+                    ? 'Tem palquinho confirmado'
+                    : previewState === 'other'
+                      ? 'Tem rolê confirmado!!!'
+                      : 'NÃO tem palquinho'}
                 </p>
                 {eventDrafts.some((e) => e.note.trim()) ? (
                   <div className="preview-events">
@@ -348,14 +361,14 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.events.length > 0 ? 'var(--orange)' : undefined }}>
-                  {selected
-                    ? selected.has_palquinho
-                      ? 'marcado: palquinho SIM'
-                      : eventDrafts.some((e) => e.note.trim())
-                        ? 'marcado: NÃO (outro rolê)'
-                        : 'marcado: NÃO'
-                    : 'ainda não marcado'}
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : undefined }}>
+                  {previewState === 'yes'
+                    ? 'marcado: palquinho SIM'
+                    : previewState === 'other'
+                      ? 'marcado: NÃO (outro rolê, laranja)'
+                      : selected
+                        ? 'marcado: NÃO (vermelho)'
+                        : 'ainda não marcado'}
                 </p>
 
                 <div className="event-editor">
@@ -401,12 +414,20 @@ export default function AdminScreen() {
                 </div>
 
                 <div className="panel-actions" style={{ flexDirection: 'column', gap: '0.5rem' }}>
+                  <button className="btn yes-btn" onClick={() => setDay(true, false)} disabled={busy}>
+                    marcar SIM
+                  </button>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-                    <button className="btn yes-btn" onClick={() => setDay(true)} disabled={busy}>
-                      marcar SIM
-                    </button>
-                    <button className="btn no-btn" onClick={() => setDay(false)} disabled={busy}>
+                    <button className="btn no-btn" onClick={() => setDay(false, false)} disabled={busy}>
                       marcar NÃO
+                    </button>
+                    <button
+                      className="btn other-btn"
+                      onClick={() => setDay(false, true)}
+                      disabled={busy}
+                      title="não tem palquinho, mas o dia é de outro rolê (laranja)"
+                    >
+                      NÃO (outro rolê)
                     </button>
                   </div>
                 </div>

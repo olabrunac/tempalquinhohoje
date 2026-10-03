@@ -130,7 +130,33 @@ with SessionLocal() as db:
                            {"d": D1}).scalar()
 check("eventos do dia apagados", restantes == 0, f"(sobraram {restantes})")
 
-print("8. admin continua exigindo senha")
+print("8. NAO vermelho vs NAO laranja (outro evento) sao estados diferentes")
+client.put(f"/api/v1/admin/{D1}",
+           json={"has_palquinho": False, "events": [ev("so uma nota")]}, headers=ADMIN)
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("NAO com nota e vermelho por padrao", d["is_other_event"] is False)
+client.put(f"/api/v1/admin/{D1}",
+           json={"has_palquinho": False, "is_other_event": True, "events": [ev("tem rolê")]},
+           headers=ADMIN)
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("NAO com is_other_event e laranja", d["is_other_event"] is True)
+client.put(f"/api/v1/admin/{D1}",
+           json={"has_palquinho": True, "is_other_event": True, "events": [ev("palquinho")]},
+           headers=ADMIN)
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("SIM ignora is_other_event", d["is_other_event"] is False, f"(veio {d['is_other_event']})")
+check("SIM continua verde", d["has_palquinho"] is True)
+client.put(f"/api/v1/admin/{D1}",
+           json={"has_palquinho": False, "events": [ev("nota")], "is_other_event": False},
+           headers=ADMIN)
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("voltar pra vermelho", d["is_other_event"] is False)
+
+print("9b. admin continua exigindo senha")
 r = client.put(f"/api/v1/admin/{D1}", json={"has_palquinho": True, "events": []})
 check("sem senha -> 401", r.status_code == 401, f"(status {r.status_code})")
 

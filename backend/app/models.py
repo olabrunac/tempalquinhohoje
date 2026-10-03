@@ -11,11 +11,16 @@ class PalquinhoDay(Base):
 
     A lista de eventos (nota + link de cada um) vive em PalquinhoEvent. As colunas
     note/instagram foram removidas do model; sobraram vazias no banco e não são lidas.
+
+    `is_other_event` é o que decide a cor do dia: com ele ligado, um dia sem palquinho
+    aparece laranja ("tem rolê"), em vez do vermelho de "não tem". Precisa ser explícito
+    porque o dia pode ter nota sem ser evento — e aí o admin quer o vermelho.
     """
     __tablename__ = "palquinho_day"
 
     day: Mapped[date] = mapped_column(Date, primary_key=True)
     has_palquinho: Mapped[bool]
+    is_other_event: Mapped[bool] = mapped_column(default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 

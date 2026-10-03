@@ -15,12 +15,16 @@ export interface EventDraft {
 export interface TodayOut {
   day: string
   has_palquinho: boolean | null
+  // Dia sem palquinho que é outro evento (aparece laranja, não vermelho).
+  // Precisa ser explícito: às vezes a nota do dia não é evento.
+  is_other_event: boolean
   events: EventItem[]
 }
 
 export interface DayOut {
   day: string
   has_palquinho: boolean
+  is_other_event: boolean
   events: EventItem[]
 }
 
@@ -83,12 +87,19 @@ export const api = {
       headers: jsonHeaders(),
       body: JSON.stringify(payload),
     }),
-  setDay: (day: string, has_palquinho: boolean, events: EventDraft[], adminKey: string) =>
+  setDay: (
+    day: string,
+    has_palquinho: boolean,
+    is_other_event: boolean,
+    events: EventDraft[],
+    adminKey: string
+  ) =>
     request<DayOut>(`/admin/${day}`, {
       method: 'PUT',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
       body: JSON.stringify({
         has_palquinho,
+        is_other_event,
         // nota vazia não vai pro banco (o backend também ignora, mas cortar aqui
         // evita mandar lixo e tomar 422 no limite de tamanho)
         events: events

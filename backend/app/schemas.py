@@ -27,6 +27,7 @@ class EventIn(BaseModel):
 class DayOut(BaseModel):
     day: date
     has_palquinho: bool
+    is_other_event: bool = False  # sem palquinho, mas é outro evento (laranja)
     events: list[EventOut] = Field(default_factory=list)
 
     class Config:
@@ -36,6 +37,7 @@ class DayOut(BaseModel):
 class TodayOut(BaseModel):
     day: date
     has_palquinho: bool | None = None  # None = não marcado ainda
+    is_other_event: bool = False
     events: list[EventOut] = Field(default_factory=list)
 
 
@@ -67,6 +69,9 @@ class SuggestionOut(BaseModel):
 
 class DaySetIn(BaseModel):
     has_palquinho: bool
+    # Só faz sentido com has_palquinho=false: dia sem palquinho que é outro evento
+    # (laranja). Com has_palquinho=true o site ignora — o dia é verde.
+    is_other_event: bool = False
     # A lista inteira substitui os eventos do dia. Limite de 3 corta erro de digitação
     # e abuso antes do banco; o frontend esconde o "+" no mesmo ponto.
     events: list[EventIn] = Field(default_factory=list, max_length=MAX_EVENTS_PER_DAY)

@@ -426,6 +426,11 @@ body {
   color: #fff;
 }
 
+.other-btn {
+  background: var(--orange);
+  color: #fff;
+}
+
 .ghost {
   background: transparent;
   color: var(--muted);
