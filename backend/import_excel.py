@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 import pandas as pd
 from app.db import SessionLocal, init_db
-from app.models import PalquinhoDay
+from app.models import PalquinhoDay, PalquinhoEvent
 
 MONTH_MAP = {
     'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
@@ -82,22 +82,17 @@ def import_visual_sheet(filepath_or_url: str):
             is_palquinho = any('palquinho' in t.lower() for t in texts)
 
             # Se não for palquinho, marca com prefixo [EVENTO] para ficar laranja (Tem rolê)
-            formatted_notes = []
-            for t in texts:
-                if not is_palquinho and not t.startswith('[EVENTO]'):
-                    formatted_notes.append(f"[EVENTO] {t}")
-                else:
-                    formatted_notes.append(t)
-
-            final_note = "\n".join(formatted_notes)
-
             row = db.query(PalquinhoDay).filter_by(day=d).first()
             if row is None:
                 row = PalquinhoDay(day=d)
                 db.add(row)
-
             row.has_palquinho = is_palquinho
-            row.note = final_note
+
+            # Cada texto da planilha vira um evento (nota própria, sem link).
+            db.query(PalquinhoEvent).filter(PalquinhoEvent.day == d).delete()
+            for i, t in enumerate(texts):
+                db.add(PalquinhoEvent(day=d, position=i + 1, note=t))
+
             print(f"[{d}] Salvo: Palquinho={is_palquinho} | Eventos: {len(texts)}")
 
         db.commit()

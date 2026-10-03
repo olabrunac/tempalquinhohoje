@@ -14,11 +14,14 @@ só muda quando o admin marca o dia. Quem souber de um palquinho manda uma suges
 - **Confete arco-íris** caindo atrás do SIM quando tem palquinho.
 - **Favicon dinâmico**: ✅ verde quando tem, ❌ vermelho quando não tem.
 - **Faixa da semana atual** no rodapé: cada dia verde (SIM) ou vermelho (NÃO); passar o mouse
-  mostra a nota, e clicar abre o Instagram do anúncio (alinha certinho no celular e no PC).
-- **Nota + link do Instagram do anúncio**: tanto pra dias SIM quanto pra dias NÃO que tenham
-  outro evento grande pra anunciar.
+  mostra as notas do dia, e clicar abre o dia na agenda.
+- **Até 3 eventos por dia**, cada um com sua nota e seu próprio link do Instagram. Nota que tem
+  link vira clicável (sublinhada, com ↗) pra não parecer texto morto. Vale tanto pra dias SIM
+  quanto pra dias NÃO que tenham outro evento grande pra anunciar.
 - **Sugestão anônima** com mini calendário clicável (data + organizador + link opcional).
 - **Admin** (`/admin`):
-  - calendário mensal pra marcar **SIM** ou **NÃO** (com nota e link) e desmarcar;
+  - calendário mensal pra marcar **SIM** ou **NÃO** e desmarcar;
+  - editor de eventos (cada um com nota + link, botão `+` até 3, `✕` apaga);
+  - prévia ao vivo do dia abaixo do calendário, antes de salvar;
   - sugestões com abas **pendentes / arquivo** (histórico com confirmada ✓ / descartada ✗);
 - Tema escuro em todo o site.

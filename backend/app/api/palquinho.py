@@ -41,6 +41,59 @@ def require_admin(request: Request, x_admin_key: str | None = Header(default=Non
 router = APIRouter()
 
 
+def _events_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, list[models.PalquinhoEvent]]:
+    """Carrega os eventos de vários dias em uma query só (evita N+1 nos endpoints)."""
+    if not days:
+        return {}
+    wanted = [d.day for d in days]
+    rows = (
+        db.query(models.PalquinhoEvent)
+        .filter(models.PalquinhoEvent.day.in_(wanted))
+        .order_by(models.PalquinhoEvent.day, models.PalquinhoEvent.position, models.PalquinhoEvent.id)
+        .all()
+    )
+    grouped: dict[date, list[models.PalquinhoEvent]] = {}
+    for ev in rows:
+        grouped.setdefault(ev.day, []).append(ev)
+    return grouped
+
+
+def _day_out(row: models.PalquinhoDay, events: list[models.PalquinhoEvent]) -> schemas.DayOut:
+    return schemas.DayOut(
+        day=row.day,
+        has_palquinho=row.has_palquinho,
+        events=[schemas.EventOut.model_validate(e) for e in events],
+    )
+
+
+def _upsert_day(db: Session, d: date, has_palquinho: bool) -> models.PalquinhoDay:
+    row = db.query(models.PalquinhoDay).filter_by(day=d).first()
+    if row is None:
+        row = models.PalquinhoDay(day=d)
+        db.add(row)
+    row.has_palquinho = has_palquinho
+    return row
+
+
+def _replace_events(db: Session, d: date, incoming: list[schemas.EventIn]) -> list[models.PalquinhoEvent]:
+    """Substitui a lista de eventos do dia. A lista inteira vem do admin a cada save,
+    então deletar e recriar é mais simples que diff — e some o que foi apagado na UI."""
+    db.query(models.PalquinhoEvent).filter(models.PalquinhoEvent.day == d).delete()
+    created = [
+        models.PalquinhoEvent(
+            day=d,
+            position=i + 1,
+            note=ev.note.strip(),
+            instagram=(ev.instagram or "").strip() or None,
+        )
+        for i, ev in enumerate(incoming)
+        if ev.note.strip()
+    ]
+    for ev in created:
+        db.add(ev)
+    return created
+
+
 @router.get("/today", response_model=schemas.TodayOut)
 def get_today(response: Response, db: Session = Depends(get_db)):
     """SIM/NÃO de hoje. None se o admin ainda não marcou o dia."""
@@ -49,7 +102,12 @@ def get_today(response: Response, db: Session = Depends(get_db)):
     row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
     if row is None:
         return schemas.TodayOut(day=today)
-    return schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+    events = _events_by_day(db, [row]).get(today, [])
+    return schemas.TodayOut(
+        day=today,
+        has_palquinho=row.has_palquinho,
+        events=[schemas.EventOut.model_validate(e) for e in events],
+    )
 
 
 @router.get("/home", response_model=schemas.HomeOut)
@@ -57,20 +115,27 @@ def get_home(response: Response, db: Session = Depends(get_db)):
     """Retorna o SIM/NÃO de hoje e todos os dias marcados em 1 única requisição."""
     response.headers["Cache-Control"] = "public, s-maxage=5, stale-while-revalidate=3600"
     today = today_local()
-    row = db.query(models.PalquinhoDay).filter(models.PalquinhoDay.day == today).first()
+    days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    grouped = _events_by_day(db, days)
+    row = next((d for d in days if d.day == today), None)
     today_out = (
         schemas.TodayOut(day=today)
         if row is None
-        else schemas.TodayOut(day=today, has_palquinho=row.has_palquinho, note=row.note, instagram=row.instagram)
+        else schemas.TodayOut(
+            day=today,
+            has_palquinho=row.has_palquinho,
+            events=[schemas.EventOut.model_validate(e) for e in grouped.get(today, [])],
+        )
     )
-    days_out = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
-    return schemas.HomeOut(today=today_out, days=days_out)
+    return schemas.HomeOut(today=today_out, days=[_day_out(d, grouped.get(d.day, [])) for d in days])
 
 
 @router.get("/days", response_model=list[schemas.DayOut])
 def list_days(db: Session = Depends(get_db)):
-    """Todos os dias já marcados pelo admin."""
-    return db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    """Todos os dias já marcados pelo admin, cada um com sua lista de eventos."""
+    days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
+    grouped = _events_by_day(db, days)
+    return [_day_out(d, grouped.get(d.day, [])) for d in days]
 
 
 @router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
@@ -103,27 +168,24 @@ def create_suggestion(payload: schemas.SuggestionIn, request: Request, db: Sessi
 
 @router.put("/admin/{day}", response_model=schemas.DayOut, dependencies=[Depends(require_admin)])
 def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
-    """Admin marca se tem palquinho num dia (upsert)."""
+    """Admin marca o dia (SIM ou NÃO) e substitui a lista de eventos."""
     d = date.fromisoformat(day)
-    row = db.query(models.PalquinhoDay).filter_by(day=d).first()
-    if row is None:
-        row = models.PalquinhoDay(day=d)
-        db.add(row)
-    row.has_palquinho = payload.has_palquinho
-    row.note = payload.note
-    row.instagram = payload.instagram
+    row = _upsert_day(db, d, payload.has_palquinho)
+    events = _replace_events(db, d, payload.events)
     db.commit()
     db.refresh(row)
-    return row
+    return _day_out(row, events)
 
 
 @router.delete("/admin/{day}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
 def unset_day(day: str, db: Session = Depends(get_db)):
-    """Admin remove a marcação de um dia."""
-    row = db.query(models.PalquinhoDay).filter_by(day=date.fromisoformat(day)).first()
+    """Admin remove a marcação do dia (os eventos do dia vão junto)."""
+    d = date.fromisoformat(day)
+    row = db.query(models.PalquinhoDay).filter_by(day=d).first()
+    db.query(models.PalquinhoEvent).filter(models.PalquinhoEvent.day == d).delete()
     if row:
         db.delete(row)
-        db.commit()
+    db.commit()
 
 
 @router.get("/admin/suggestions", response_model=list[schemas.SuggestionOut], dependencies=[Depends(require_admin)])
@@ -183,8 +245,9 @@ def get_dashboard(db: Session = Depends(get_db)):
         created_at=s.created_at,
         has_palquinho=marked.get(s.day),
     )
+    grouped = _events_by_day(db, days)
     return schemas.DashboardOut(
-        days=days,
+        days=[_day_out(d, grouped.get(d.day, [])) for d in days],
         pending=[to_out(s) for s in pending],
         archive=[to_out(s) for s in archive],
     )
@@ -200,19 +263,14 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
     sug = db.get(models.PalquinhoSuggestion, suggestion_id)
     if sug is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
-    row = db.query(models.PalquinhoDay).filter_by(day=sug.day).first()
-    if row is None:
-        row = models.PalquinhoDay(day=sug.day)
-        db.add(row)
-    row.has_palquinho = payload.has_palquinho
-    row.note = payload.note
-    row.instagram = payload.instagram
+    row = _upsert_day(db, sug.day, payload.has_palquinho)
+    events = _replace_events(db, sug.day, payload.events)
     sug.status = "solved"
     sug.action = "confirm"
     sug.solved_at = datetime.now()
     db.commit()
     db.refresh(row)
-    return row
+    return _day_out(row, events)
 
 
 @router.delete(

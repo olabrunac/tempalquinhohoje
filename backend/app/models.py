@@ -7,14 +7,31 @@ from .db import Base
 
 
 class PalquinhoDay(Base):
-    """Dia marcado como tendo (ou não) palquinho pelo admin."""
+    """Dia marcado como tendo (ou não) palquinho pelo admin.
+
+    A lista de eventos (nota + link de cada um) vive em PalquinhoEvent. As colunas
+    note/instagram foram removidas do model; sobraram vazias no banco e não são lidas.
+    """
     __tablename__ = "palquinho_day"
 
     day: Mapped[date] = mapped_column(Date, primary_key=True)
     has_palquinho: Mapped[bool]
-    note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class PalquinhoEvent(Base):
+    """Um evento de um dia (churrasco, palquinho, rolê...).
+
+    Substitui a nota multilinha em palquinho_day: cada evento tem sua própria nota
+    e seu próprio link do Instagram. `position` define a ordem de exibição.
+    """
+    __tablename__ = "palquinho_event"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    position: Mapped[int] = mapped_column(default=1)
+    note: Mapped[str] = mapped_column(Text)
+    instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
 
 
 class PalquinhoSuggestion(Base):
