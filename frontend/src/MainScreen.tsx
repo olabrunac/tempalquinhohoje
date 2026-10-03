@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { api, type DayOut, type TodayOut } from './api'
+import { api, type DayOut, type EventItem, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import { VERSION } from './version'
 import SuggestionModal from './SuggestionModal'
@@ -19,9 +19,24 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function cleanNote(note?: string | null): string | null {
-  if (!note) return null
-  return note.replace(/^\[EVENTO\]\s*/i, '')
+// Cada evento do dia tem nota e link próprios. Sem link, a nota é só texto.
+function EventList({ events }: { events?: EventItem[] }) {
+  if (!events?.length) return null
+  return (
+    <div className="notes-list-simple">
+      {events.map((e) =>
+        e.instagram ? (
+          <a key={e.id} className="note-text-simple note-link" href={e.instagram} target="_blank" rel="noopener noreferrer">
+            {e.note} <span aria-hidden="true">↗</span>
+          </a>
+        ) : (
+          <p key={e.id} className="note-text-simple">
+            {e.note}
+          </p>
+        )
+      )}
+    </div>
+  )
 }
 
 function getWeekDays(start: Date): Date[] {
@@ -111,7 +126,9 @@ export default function MainScreen() {
   const currentDayData = activeIso === todayIso ? today : dayMap.get(activeIso)
 
   const hasPalquinho = currentDayData?.has_palquinho ?? false
-  const isOther = currentDayData && !currentDayData.has_palquinho && currentDayData.note?.startsWith('[EVENTO]')
+// has_palquinho null = não marcado (mostra NÃO). O laranja vem de is_other_event,
+  // que o admin escolheu no botão — o dia pode ter nota e continuar vermelho.
+  const isOther = currentDayData?.has_palquinho === false && currentDayData.is_other_event
   const loading = !today && !error && activeIso === todayIso
   const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
 
@@ -172,27 +189,7 @@ export default function MainScreen() {
           </div>
         )}
         <div className="extra-block">
-          {cleanNote(currentDayData?.note) && (
-            <div className="notes-list-simple">
-              {cleanNote(currentDayData?.note)
-                ?.split('\n')
-                .map((line, idx) => line.trim() && (
-                  <p key={idx} className="note-text-simple">
-                    {line}
-                  </p>
-                ))}
-            </div>
-          )}
-          {currentDayData?.instagram && (
-            <a
-              className="instagram-link-simple"
-              href={currentDayData.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              ver no instagram ↗
-            </a>
-          )}
+          <EventList events={currentDayData?.events} />
         </div>
       </main>
 
@@ -205,7 +202,8 @@ export default function MainScreen() {
             const key = iso(d)
             const day = dayMap.get(key)
             const has = day?.has_palquinho ?? false
-            const isOtherDay = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
+            const isOtherDay = day?.has_palquinho === false && day.is_other_event
+            const notas = day?.events.map((e) => e.note).join(' · ')
             const isToday = key === todayIso
             const isPast = key < todayIso
             const isViewing = key === activeIso
@@ -218,11 +216,7 @@ export default function MainScreen() {
             ]
               .filter(Boolean)
               .join(' ')
-            const title = has
-              ? cleanNote(day?.note) || 'tem palquinho! 🎉'
-              : isOtherDay
-              ? cleanNote(day?.note) || 'outro evento'
-              : cleanNote(day?.note) || 'acho que não tem'
+            const title = notas || (has ? 'tem palquinho! 🎉' : isOtherDay ? 'outro evento' : 'acho que não tem')
             const inner = (
               <>
                 <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>

@@ -39,14 +39,16 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _ensure_column("palquinho_suggestion", "instagram", "VARCHAR(300)")
-    _ensure_column("palquinho_day", "instagram", "VARCHAR(300)")
     _ensure_column("palquinho_suggestion", "action", "VARCHAR(10)")
     _ensure_column("palquinho_suggestion", "solved_at", "TIMESTAMP")
+    _ensure_column("palquinho_day", "is_other_event", "BOOLEAN NOT NULL DEFAULT false")
+    migrate_day_notes_to_events()
     _schema_checked = True
 
 
 _EXPECTED = {
-    "palquinho_day": {"day", "has_palquinho", "note", "instagram", "updated_at"},
+    "palquinho_day": {"day", "has_palquinho", "is_other_event", "updated_at"},
+    "palquinho_event": {"id", "day", "position", "note", "instagram"},
     "palquinho_suggestion": {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",
     },
@@ -85,3 +87,65 @@ def _ensure_column(table: str, column: str, ddl_type: str) -> None:
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl_type}"))
         except Exception:
             pass
+
+
+_EVENTO_PREFIX = "[EVENTO]"
+
+
+def _split_legacy_note(note: str) -> tuple[list[str], bool]:
+    """Nota antiga = uma linha por evento. Tira o marcador [EVENTO] das linhas.
+
+    Devolve (linhas, é_outro_evento) — o prefixo marcava dia de "outro evento"
+    (laranja no site) e hoje o admin escolhe isso na hora de salvar.
+    """
+    lines: list[str] = []
+    is_outro_evento = False
+    for raw in note.splitlines():
+        line = raw.strip()
+        if line.startswith(_EVENTO_PREFIX):
+            is_outro_evento = True
+            line = line[len(_EVENTO_PREFIX):].strip()
+        if line:
+            lines.append(line)
+    return lines, is_outro_evento
+
+
+def migrate_day_notes_to_events() -> list[str]:
+    """Converte a nota multilinha dos dias já marcados em um evento por linha.
+
+    Idempotente: só mexe em dia que tem nota e ainda não tem nenhum evento, então
+    rodar em todo cold start não duplica nada. O link antigo NÃO é copiado — o admin
+    prefere revisar evento por evento depois (a sugestão guarda o instagram dele).
+
+    Devolve a lista de dias convertidos, pra conferir no log.
+    """
+    from sqlalchemy import text
+
+    try:
+        with engine.begin() as conn:
+            rows = conn.execute(
+                text(
+                    "SELECT d.day, d.note FROM palquinho_day d "
+                    "WHERE d.note IS NOT NULL AND TRIM(d.note) <> '' "
+                    "AND NOT EXISTS (SELECT 1 FROM palquinho_event e WHERE e.day = d.day) "
+                    "ORDER BY d.day"
+                )
+            ).fetchall()
+            converted: list[str] = []
+            for day, note in rows:
+                lines, _is_outro = _split_legacy_note(note)
+                for i, line in enumerate(lines):
+                    conn.execute(
+                        text(
+                            "INSERT INTO palquinho_event (day, position, note, instagram) "
+                            "VALUES (:day, :position, :note, NULL)"
+                        ),
+                        {"day": day, "position": i + 1, "note": line},
+                    )
+                if lines:
+                    converted.append(str(day))
+    except Exception:
+        return []
+    if converted:
+        print(f"[migrate] {len(converted)} dia(s) convertido(s) para eventos: {', '.join(converted)}")
+    return converted

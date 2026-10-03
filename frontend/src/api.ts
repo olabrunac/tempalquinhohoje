@@ -1,15 +1,31 @@
+// Um evento do dia: a nota e o link do anúncio daquele evento (link é opcional).
+export interface EventItem {
+  id: number
+  position: number
+  note: string
+  instagram?: string | null
+}
+
+// O que o admin digita: sem id, porque ainda não foi salvo.
+export interface EventDraft {
+  note: string
+  instagram?: string | null
+}
+
 export interface TodayOut {
   day: string
   has_palquinho: boolean | null
-  note?: string | null
-  instagram?: string | null
+  // Dia sem palquinho que é outro evento (aparece laranja, não vermelho).
+  // Precisa ser explícito: às vezes a nota do dia não é evento.
+  is_other_event: boolean
+  events: EventItem[]
 }
 
 export interface DayOut {
   day: string
   has_palquinho: boolean
-  note?: string | null
-  instagram?: string | null
+  is_other_event: boolean
+  events: EventItem[]
 }
 
 export interface SuggestionOut {
@@ -71,11 +87,25 @@ export const api = {
       headers: jsonHeaders(),
       body: JSON.stringify(payload),
     }),
-  setDay: (day: string, has_palquinho: boolean, note: string | null, instagram: string | null, adminKey: string) =>
+  setDay: (
+    day: string,
+    has_palquinho: boolean,
+    is_other_event: boolean,
+    events: EventDraft[],
+    adminKey: string
+  ) =>
     request<DayOut>(`/admin/${day}`, {
       method: 'PUT',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-      body: JSON.stringify({ has_palquinho, note, instagram }),
+      body: JSON.stringify({
+        has_palquinho,
+        is_other_event,
+        // nota vazia não vai pro banco (o backend também ignora, mas cortar aqui
+        // evita mandar lixo e tomar 422 no limite de tamanho)
+        events: events
+          .map((e) => ({ note: e.note.trim(), instagram: (e.instagram ?? '').trim() || null }))
+          .filter((e) => e.note.length > 0),
+      }),
     }),
   unsetDay: (day: string, adminKey: string) =>
     request<void>(`/admin/${day}`, {
@@ -90,11 +120,22 @@ export const api = {
     request<DashboardOut>('/admin/dashboard', {
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
     }),
-  confirmSuggestion: (id: number, has_palquinho: boolean, instagram: string | null, adminKey: string) =>
+  confirmSuggestion: (
+    id: number,
+    has_palquinho: boolean,
+    organizer: string,
+    instagram: string | null,
+    adminKey: string
+  ) =>
     request<DayOut>(`/admin/suggestions/${id}/confirm`, {
       method: 'POST',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-      body: JSON.stringify({ has_palquinho, instagram }),
+      // Confirmar já marca o dia e cria o primeiro evento com o pedido de quem sugeriu
+      // (nota = quem organiza). Aí é só ajustar o texto e salvar pelo painel.
+      body: JSON.stringify({
+        has_palquinho,
+        events: [{ note: organizer, instagram: instagram?.trim() || null }],
+      }),
     }),
   dismissSuggestion: (id: number, adminKey: string) =>
     request<void>(`/admin/suggestions/${id}`, {

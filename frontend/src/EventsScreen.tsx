@@ -14,9 +14,16 @@ function fmtPt(day: string): string {
   return `${d} de ${MONTHS[m - 1]} de ${y}`
 }
 
-function cleanNote(note?: string | null): string | null {
-  if (!note) return null
-  return note.replace(/^\[EVENTO\]\s*/i, '')
+// Nota com link vira nota clicável, com seta + sublinhado indicando isso.
+function EventCard({ note, instagram }: { note: string; instagram?: string | null }) {
+  if (!instagram) {
+    return <div className="event-card">{note}</div>
+  }
+  return (
+    <a className="event-card event-card-link" href={instagram} target="_blank" rel="noopener noreferrer">
+      {note} <span aria-hidden="true">↗</span>
+    </a>
+  )
 }
 
 function buildCells(year: number, month: number): (Date | null)[] {
@@ -39,7 +46,7 @@ export default function EventsScreen() {
     api
       .getDays()
       .then((d) => {
-        setDays(d.filter((x) => x.has_palquinho || x.note?.startsWith('[EVENTO]')))
+        setDays(d.filter((x) => x.has_palquinho || x.is_other_event))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -93,7 +100,7 @@ export default function EventsScreen() {
                 const isToday = key === todayIso
                 const isSelected = selectedDay?.day === key
                 const hasEvent = !!day
-                const isOther = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
+                const isOther = day?.has_palquinho === false && day.is_other_event
 
                 const cls = [
                   'cal-cell',
@@ -128,31 +135,14 @@ export default function EventsScreen() {
           {selectedDay && (
             <div className="panel" style={{ marginTop: '1rem' }}>
               <h3 className="panel-title">{fmtPt(selectedDay.day)}</h3>
-              <p className="current-status" style={{ color: !selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'var(--orange)' : 'var(--green)' }}>
-                {!selectedDay.has_palquinho && selectedDay.note?.startsWith('[EVENTO]') ? 'Tem rolê confirmado!!!' : 'Tem palquinho confirmado'}
+              <p className="current-status" style={{ color: selectedDay.is_other_event ? 'var(--orange)' : 'var(--green)' }}>
+                {selectedDay.has_palquinho ? 'Tem palquinho confirmado' : 'Tem rolê confirmado!!!'}
               </p>
-              {cleanNote(selectedDay?.note) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
-                  {cleanNote(selectedDay?.note)
-                    ?.split('\n')
-                    .map((line, idx) => line.trim() && (
-                      <div key={idx} className="muted" style={{ background: '#1f2937', padding: '0.5rem 0.8rem', borderRadius: '8px', color: '#e5e7eb', fontSize: '0.95rem' }}>
-                        {line}
-                      </div>
-                    ))}
-                </div>
-              )}
-              {selectedDay.instagram && (
-                <a
-                  className="event-insta"
-                  style={{ display: 'inline-block', marginTop: '0.5rem', textAlign: 'center' }}
-                  href={selectedDay.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ver anúncio no instagram ↗
-                </a>
-              )}
+              <div className="event-cards">
+                {selectedDay.events.map((e) => (
+                  <EventCard key={e.id} note={e.note} instagram={e.instagram} />
+                ))}
+              </div>
             </div>
           )}
         </section>

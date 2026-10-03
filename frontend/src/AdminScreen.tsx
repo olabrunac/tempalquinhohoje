@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, ApiError, type DayOut, type SuggestionOut } from './api'
+import { api, ApiError, type DayOut, type EventDraft, type SuggestionOut } from './api'
+
+// Mesmo limite do backend (schemas.MAX_EVENTS_PER_DAY) — o "+" some aqui antes
+// de você chegar no 422, e o backend fecha a brecha se alguém chamar a API direto.
+const MAX_EVENTS = 3
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -44,8 +48,12 @@ export default function AdminScreen() {
   const [suggestionArchive, setSuggestionArchive] = useState<SuggestionOut[]>([])
   const [suggestionTab, setSuggestionTab] = useState<'pending' | 'archive'>('pending')
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
-  const [noteDraft, setNoteDraft] = useState('')
-  const [instagramDraft, setInstagramDraft] = useState('')
+  // Rascunho dos eventos do dia selecionado. Cada linha da lista é um evento
+  // com nota + link próprios; o id só existe depois de salvo.
+  const [eventDrafts, setEventDrafts] = useState<EventDraft[]>([])
+  // Qual dos três botões está selecionado no rascunho (pra prévia refletir a cor
+  // antes de salvar). null = dia ainda não marcado.
+  const [draftState, setDraftState] = useState<'yes' | 'no' | 'other' | null>(null)
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState('')
 
@@ -99,22 +107,51 @@ export default function AdminScreen() {
 
   const refresh = async () => {
     await loadData(adminKey)
-    setNoteDraft('')
-    setInstagramDraft('')
+    setEventDrafts([])
     setSelectedDay(null)
   }
 
-  const setDay = async (has: boolean, isOther: boolean = false) => {
+  const selectDay = (day: DayOut | undefined, key: string) => {
+    setSelectedDay(key)
+    setEventDrafts(
+      (day?.events ?? []).map((e) => ({ note: e.note, instagram: e.instagram ?? '' }))
+    )
+    setDraftState(
+      day ? (day.has_palquinho ? 'yes' : day.is_other_event ? 'other' : 'no') : null
+    )
+    setFeedback('')
+  }
+
+  
+
+  const updateEvent = (idx: number, patch: Partial<EventDraft>) => {
+    setEventDrafts((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))
+  }
+
+  const addEvent = () => {
+    setEventDrafts((prev) => (prev.length >= MAX_EVENTS ? prev : [...prev, { note: '', instagram: '' }]))
+  }
+
+  const removeEvent = (idx: number) => {
+    if (!window.confirm('apagar esse evento do dia?')) return
+    setEventDrafts((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  // Três botões porque são três intenções diferentes:
+//   SIM                    → verde, tem palquinho
+//   NÃO                    → vermelho, só pra deixar a nota do dia
+//   NÃO (outro evento)     → laranja, o dia é de outro rolê
+const setDay = async (has: boolean, isOther: boolean) => {
     if (!selectedDay) return
+    const comNota = eventDrafts.filter((e) => e.note.trim())
+    if (comNota.length > MAX_EVENTS) {
+      setFeedback(`no máximo ${MAX_EVENTS} eventos por dia`)
+      return
+    }
     setBusy(true)
     setFeedback('')
-    let noteText = noteDraft.trim() || null
-    if (isOther) {
-      if (!noteText) noteText = '[EVENTO]'
-      else if (!noteText.startsWith('[EVENTO]')) noteText = '[EVENTO] ' + noteText
-    }
     try {
-      await api.setDay(selectedDay, has, noteText, instagramDraft.trim() || null, adminKey)
+      await api.setDay(selectedDay, has, isOther, eventDrafts, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -141,7 +178,7 @@ export default function AdminScreen() {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(s.id, true, s.instagram ?? null, adminKey)
+      await api.confirmSuggestion(s.id, true, s.organizer, s.instagram ?? null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -206,6 +243,8 @@ export default function AdminScreen() {
   const cells = buildCells(month.year, month.month)
   const selected = selectedDay ? dayMap.get(selectedDay) : undefined
   const todayIso = iso(now)
+  // A prévia e o painel do dia leem o rascunho, que já vem do salvo ao clicar no dia.
+  const previewState: 'yes' | 'no' | 'other' = draftState ?? (selected ? 'no' : 'no')
 
   const nav = (delta: number) => {
     const next = new Date(month.year, month.month + delta, 1)
@@ -249,10 +288,9 @@ export default function AdminScreen() {
               const day = dayMap.get(key)
               const isToday = key === todayIso
               const isSelected = key === selectedDay
-              const isOther = day && !day.has_palquinho && day.note?.startsWith('[EVENTO]')
               const cls = [
                 'cal-cell',
-                day ? (isOther ? 'has-other' : day.has_palquinho ? 'has-yes' : 'has-no') : '',
+                day ? (day.has_palquinho ? 'has-yes' : day.is_other_event ? 'has-other' : 'has-no') : '',
                 isToday ? 'today' : '',
                 isSelected ? 'selected' : '',
               ]
@@ -262,12 +300,7 @@ export default function AdminScreen() {
                 <button
                   key={key}
                   className={cls}
-                  onClick={() => {
-                    setSelectedDay(key)
-                    setNoteDraft(day?.note ? day.note.replace(/^\[EVENTO\]\s*/i, '') : '')
-                    setInstagramDraft(day?.instagram ?? '')
-                    setFeedback('')
-                  }}
+                  onClick={() => selectDay(day, key)}
                 >
                   {c.getDate()}
                 </button>
@@ -277,8 +310,48 @@ export default function AdminScreen() {
           <div className="legend">
             <span className="legend-yes">SIM</span>
             <span className="legend-no">NÃO</span>
-            <span style={{ color: 'var(--orange)' }}>outro evento</span>
+            <span className="legend-other" style={{ color: 'var(--orange)', fontWeight: 600 }}>outro rolê</span>
             <span className="legend-null">vazio</span>
+          </div>
+
+          {/* Prévia do dia selecionado: mostra como fica na página pública de eventos,
+              refletindo o que está sendo digitado (rascunho), antes de salvar. */}
+          <div className="panel" style={{ marginTop: '1rem' }}>
+            <h3 className="panel-title">{selectedDay ? `prévia — ${fmtPt(selectedDay)}` : 'prévia do evento'}</h3>
+            {!selectedDay && <p className="muted">clica num dia do calendário pra ver a prévia de como ele aparece no site.</p>}
+            {selectedDay && (
+              <>
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : 'var(--green)' }}>
+                  {previewState === 'yes'
+                    ? 'Tem palquinho confirmado'
+                    : previewState === 'other'
+                      ? 'Tem rolê confirmado!!!'
+                      : 'NÃO tem palquinho'}
+                </p>
+                {eventDrafts.some((e) => e.note.trim()) ? (
+                  <div className="preview-events">
+                    {eventDrafts
+                      .filter((e) => e.note.trim())
+                      .map((e, idx) => {
+                        const link = e.instagram?.trim()
+                        return (
+                          <div key={idx} className="preview-event">
+                            {link ? (
+                              <a href={link} target="_blank" rel="noopener noreferrer">
+                                {e.note.trim()} <span aria-hidden="true">↗</span>
+                              </a>
+                            ) : (
+                              e.note.trim()
+                            )}
+                          </div>
+                        )
+                      })}
+                  </div>
+                ) : (
+                  <p className="muted" style={{ fontSize: '0.9rem' }}>sem nota nem link — só o dia marcado aparece.</p>
+                )}
+              </>
+            )}
           </div>
         </section>
 
@@ -288,44 +361,75 @@ export default function AdminScreen() {
             {!selectedDay && <p className="muted">clica num dia do calendário pra marcar que tem palquinho (ou remover).</p>}
             {selectedDay && (
               <>
-                <p className="current-status" style={{ color: selected && !selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'var(--orange)' : undefined }}>
-                  {selected ? (!selected.has_palquinho && selected.note?.startsWith('[EVENTO]') ? 'marcado: Outro evento' : selected.has_palquinho ? 'marcado: palquinho SIM' : 'marcado: NÃO') : 'ainda não marcado'}
+                <p className="current-status" style={{ color: previewState === 'other' ? 'var(--orange)' : undefined }}>
+                  {previewState === 'yes'
+                    ? 'marcado: palquinho SIM'
+                    : previewState === 'other'
+                      ? 'marcado: NÃO (outro rolê, laranja)'
+                      : selected
+                        ? 'marcado: NÃO (vermelho)'
+                        : 'ainda não marcado'}
                 </p>
-                <textarea
-                  className="textarea"
-                  placeholder="nota / eventos (um por linha) — ex.:&#10;14:00 - Churrasco da Bateria&#10;19:00 - Palquinho Principal"
-                  value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
-                  rows={3}
-                />
-                <p className="muted" style={{ fontSize: '0.78rem', marginTop: '-0.3rem', lineHeight: 1.3 }}>
-                  💡 <strong>Múltiplos eventos:</strong> Digite cada evento em uma linha separada (ex: <em>14:00 - Churrasco</em>).
-                </p>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="link do instagram do anúncio (opcional)"
-                  value={instagramDraft}
-                  onChange={(e) => setInstagramDraft(e.target.value)}
-                  maxLength={300}
-                />
+
+                <div className="event-editor">
+                  {eventDrafts.map((ev, idx) => (
+                    <div key={idx} className="event-row">
+                      <div className="event-row-head">
+                        <span className="event-row-num">{idx + 1}</span>
+                        <button
+                          className="btn ghost small danger"
+                          onClick={() => removeEvent(idx)}
+                          disabled={busy}
+                          title="apagar esse evento"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="ex.: 14:00 - Churrasco da Bateria"
+                        value={ev.note}
+                        onChange={(e) => updateEvent(idx, { note: e.target.value })}
+                        maxLength={2000}
+                      />
+                      <input
+                        className="input"
+                        type="text"
+                        placeholder="link do instagram desse evento (opcional)"
+                        value={ev.instagram ?? ''}
+                        onChange={(e) => updateEvent(idx, { instagram: e.target.value })}
+                        maxLength={300}
+                      />
+                    </div>
+                  ))}
+                  <button className="btn ghost" onClick={addEvent} disabled={busy || eventDrafts.length >= MAX_EVENTS}>
+                    + adicionar evento
+                  </button>
+                  {eventDrafts.length >= MAX_EVENTS && (
+                    <p className="muted" style={{ fontSize: '0.78rem' }}>
+                      máximo de {MAX_EVENTS} eventos por dia
+                    </p>
+                  )}
+                </div>
+
                 <div className="panel-actions" style={{ flexDirection: 'column', gap: '0.5rem' }}>
+                  <button className="btn yes-btn" onClick={() => setDay(true, false)} disabled={busy}>
+                    marcar SIM
+                  </button>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-                    <button className="btn yes-btn" onClick={() => setDay(true, false)} disabled={busy}>
-                      marcar SIM
-                    </button>
                     <button className="btn no-btn" onClick={() => setDay(false, false)} disabled={busy}>
                       marcar NÃO
                     </button>
+                    <button
+                      className="btn other-btn"
+                      onClick={() => setDay(false, true)}
+                      disabled={busy}
+                      title="não tem palquinho, mas o dia é de outro rolê (laranja)"
+                    >
+                      NÃO (outro rolê)
+                    </button>
                   </div>
-                  <button
-                    className="btn"
-                    style={{ background: 'var(--orange)', color: '#fff', width: '100%' }}
-                    onClick={() => setDay(false, true)}
-                    disabled={busy}
-                  >
-                    Outro Evento (Laranja)
-                  </button>
                 </div>
                 {selected && (
                   <button className="btn ghost danger" onClick={removeDay} disabled={busy}>

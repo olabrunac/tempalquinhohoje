@@ -194,6 +194,115 @@ body {
   text-decoration: underline;
 }
 
+/* Nota que tem link: sublinhada + seta, pra dar pra ver que dá pra clicar. */
+.note-link {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.note-link:hover {
+  color: var(--green);
+}
+
+.note-link span {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* Lista de eventos da página /eventos */
+.event-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.event-card {
+  background: #1f2937;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.event-card-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.event-card-link:hover {
+  background: #263244;
+}
+
+.event-card-link span {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* Editor de eventos no admin */
+.event-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.75rem 0;
+}
+
+.event-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid #2b3446;
+  border-radius: 10px;
+  background: #161d2b;
+}
+
+.event-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-row-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Prévia do dia no admin */
+.preview-events {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.preview-event {
+  background: #1f2937;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+}
+
+.preview-event a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.preview-event a:hover {
+  color: var(--green);
+}
+
 .event-insta {
   font-size: 1rem;
   font-weight: 700;
@@ -314,6 +423,11 @@ body {
 
 .no-btn {
   background: var(--red);
+  color: #fff;
+}
+
+.other-btn {
+  background: var(--orange);
   color: #fff;
 }
 
