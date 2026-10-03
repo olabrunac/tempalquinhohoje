@@ -6,7 +6,7 @@ Site que responde se hoje tem palquinho. **O default é NÃO** —
 só muda quando o admin marca o dia. Quem souber de um palquinho manda uma sugestão
 (data + organizador + link do anúncio no Instagram) e o **admin confirma** ou **descarta** no painel.
 
-🔗 **No ar:** https://tempalquinhohoje.vercel.app
+🔗 **No ar:** https://tempalquinhohoje.com (alias: https://palquinho.com)
 
 ## Funcionalidades
 

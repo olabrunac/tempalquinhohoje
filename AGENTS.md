@@ -7,7 +7,8 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **PowerShell 5.1**: NUNCA use `&&`. Use `; if ($?) { cmd2 }`.
 - **Confiar no disco, não no transcript**: o histórico pode vir contaminado com outra conversa (logger). Sempre ler o arquivo real antes de assumir.
 - **Segredos**: `.env` em `backend/` (`DATABASE_URL` + `ADMIN_PASSWORD`). **Nunca faça commit** — repo é **PÚBLICO**. `backend/.env` está no `.gitignore`; usar `.env.example` como base.
-- **Workflow**: Issue → Branch → PR para feature/correção. Deploy automático no `git push origin main` via **Vercel** (projeto `logger-s/tempalquinhohoje`, domínio `tempalquinhohoje.vercel.app`).
+- **Workflow**: Issue → Branch → PR para feature/correção. Deploy automático no `git push origin main` via **Vercel** (projeto `logger-s/tempalquinhohoje`).
+- **Domínio**: principal é **`tempalquinhohoje.com`** (apex canônico, `www` redireciona). `palquinho.com` é alias e faz 308 pro principal — nunca apontar `og:url`/`canonical` pra ele. `tempalquinhohoje.vercel.app` segue no ar por links antigos mas não é canônico.
 
 ## Arquitetura
 - **Monorepo**: `backend/` (FastAPI + SQLAlchemy), `frontend/` (Vite React + TS), `api/index.py` (adaptador serverless que importa o app FastAPI).
