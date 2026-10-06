@@ -112,6 +112,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
                   className={cls}
                   disabled={isPast}
                   onClick={() => setDay(key)}
+                  aria-label={`${c.getDate()} de ${MONTHS[view.month]} de ${view.year}`}
                 >
                   {c.getDate()}
                 </button>
@@ -130,6 +131,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
           onChange={(e) => setOrganizer(e.target.value)}
           disabled={sending}
           autoFocus
+          aria-label="Nome do evento e organizador"
         />
         <input
           className="input"
@@ -139,6 +141,7 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
           value={instagram}
           onChange={(e) => setInstagram(e.target.value)}
           disabled={sending}
+          aria-label="Link do Instagram do anúncio"
         />
         {error && <p className="error">{error}</p>}
         <div className="modal-actions">
