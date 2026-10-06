@@ -11,7 +11,7 @@
   --red-soft: #fee2e2;
   --orange: #f97316;
   --ink: #1f2937;
-  --muted: #6b7280;
+  --muted: #9ca3af;
   --line: #e5e7eb;
 }
 
@@ -272,7 +272,7 @@ body {
 .event-row-num {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #6b7280;
+  color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -382,8 +382,8 @@ body {
   left: 0.7rem;
   z-index: 10;
   font-size: 0.6rem;
-  color: #6b7280;
-  opacity: 0.3;
+  color: #9ca3af;
+  opacity: 0.5;
   pointer-events: none;
   user-select: none;
 }
