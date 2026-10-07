@@ -70,8 +70,20 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">envie sua sugestão de rolê!</h2>
+      <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <h2 id="modal-title" className="modal-title">envie sua sugestão de rolê!</h2>
+          <button
+            type="button"
+            className="btn ghost small"
+            onClick={onClose}
+            disabled={sending}
+            aria-label="Fechar modal"
+            style={{ padding: '0.2rem 0.5rem', fontSize: '1.2rem', lineHeight: 1 }}
+          >
+            ✕
+          </button>
+        </div>
         <p className="modal-sub">mande aqui as infos do palquinho/evento que vc sabe que vai ter ou quer divulgar que iremos confirmar ele e publicar</p>
 
         <div className="mini-cal">
