@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import MainScreen from './MainScreen'
 import AdminScreen from './AdminScreen'
 import EventsScreen from './EventsScreen'
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Analytics />
+      <SpeedInsights />
     </>
   )
 }
