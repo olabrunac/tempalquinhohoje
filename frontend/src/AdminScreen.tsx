@@ -228,6 +228,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
+              aria-label="Senha do admin"
             />
             {loginError && <p className="error">{loginError}</p>}
             <button className="btn primary-btn" type="submit" disabled={busy}>
@@ -266,13 +267,13 @@ const setDay = async (has: boolean, isOther: boolean) => {
       <main className="admin-body">
         <section className="calendar-col">
           <div className="calendar-nav">
-            <button className="btn ghost" onClick={() => nav(-1)}>
+            <button className="btn ghost" onClick={() => nav(-1)} aria-label="mês anterior">
               ←
             </button>
             <h2 className="calendar-title">
               {MONTHS[month.month]} {month.year}
             </h2>
-            <button className="btn ghost" onClick={() => nav(1)}>
+            <button className="btn ghost" onClick={() => nav(1)} aria-label="próximo mês">
               →
             </button>
           </div>
@@ -301,6 +302,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
                   key={key}
                   className={cls}
                   onClick={() => selectDay(day, key)}
+                  aria-label={`${c.getDate()} de ${MONTHS[month.month]} de ${month.year}`}
                 >
                   {c.getDate()}
                 </button>
@@ -381,6 +383,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
                           onClick={() => removeEvent(idx)}
                           disabled={busy}
                           title="apagar esse evento"
+                          aria-label={`Apagar evento ${idx + 1}`}
                         >
                           ✕
                         </button>
@@ -392,6 +395,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
                         value={ev.note}
                         onChange={(e) => updateEvent(idx, { note: e.target.value })}
                         maxLength={2000}
+                        aria-label={`Nota do evento ${idx + 1}`}
                       />
                       <input
                         className="input"
@@ -400,6 +404,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
                         value={ev.instagram ?? ''}
                         onChange={(e) => updateEvent(idx, { instagram: e.target.value })}
                         maxLength={300}
+                        aria-label={`Instagram do evento ${idx + 1}`}
                       />
                     </div>
                   ))}
