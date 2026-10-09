@@ -178,6 +178,7 @@ body {
   color: #e5e7eb;
   font-weight: 600;
   line-height: 1.4;
+  white-space: pre-line;
 }
 
 .instagram-link-simple {
@@ -227,6 +228,7 @@ body {
   color: #e5e7eb;
   font-size: 0.95rem;
   text-decoration: none;
+  white-space: pre-line;
 }
 
 .event-card-link {
@@ -291,6 +293,7 @@ body {
   border-radius: 8px;
   color: #e5e7eb;
   font-size: 0.95rem;
+  white-space: pre-line;
 }
 
 .preview-event a {
@@ -520,6 +523,12 @@ body {
 .textarea:focus {
   outline: 2px solid #93c5fd;
   border-color: transparent;
+}
+
+.textarea {
+  min-height: 3.2rem;
+  resize: vertical;
+  line-height: 1.4;
 }
 
 /* ---- admin ---- */

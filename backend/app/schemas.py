@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 MAX_ORGANIZER = 80  # casa com String(80) do model
 MAX_INSTAGRAM = 300  # casa com String(300) do model
 MAX_NOTE = 2000
-MAX_EVENTS_PER_DAY = 3  # trava de segurança: 3 eventos por dia é o suficiente
+MAX_EVENTS_PER_DAY = 5  # trava de segurança: 5 eventos por dia é o suficiente
 
 
 class EventOut(BaseModel):
@@ -72,7 +72,7 @@ class DaySetIn(BaseModel):
     # Só faz sentido com has_palquinho=false: dia sem palquinho que é outro evento
     # (laranja). Com has_palquinho=true o site ignora — o dia é verde.
     is_other_event: bool = False
-    # A lista inteira substitui os eventos do dia. Limite de 3 corta erro de digitação
+    # A lista inteira substitui os eventos do dia. Limite de 5 corta erro de digitação
     # e abuso antes do banco; o frontend esconde o "+" no mesmo ponto.
     events: list[EventIn] = Field(default_factory=list, max_length=MAX_EVENTS_PER_DAY)
 

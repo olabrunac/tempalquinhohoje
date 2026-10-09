@@ -218,7 +218,7 @@ export default function MainScreen() {
             const day = dayMap.get(key)
             const has = day?.has_palquinho ?? false
             const isOtherDay = day?.has_palquinho === false && day.is_other_event
-            const notas = day?.events.map((e) => e.note).join(' · ')
+            const notas = day?.events.map((e) => e.note.replace(/\n/g, ' · ')).join(' · ')
             const isToday = key === todayIso
             const isPast = key < todayIso
             const isViewing = key === activeIso
