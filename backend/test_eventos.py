@@ -1,4 +1,4 @@
-"""Testa os eventos por dia: lista com ordem, limite de 3 e migração da nota antiga."""
+"""Testa os eventos por dia: lista com ordem, limite de 5, nota multilinha e migração da nota antiga."""
 
 import os
 import sys
@@ -88,20 +88,22 @@ with SessionLocal() as db:
                        {"d": D1}).scalar()
 check("1 linha na tabela (nao duplicou)", total == 1, f"(linhas: {total})")
 
-print("4. limite de 3 eventos por dia")
+print("4. limite de 5 eventos por dia")
 r = client.put(f"/api/v1/admin/{D1}",
                json={"has_palquinho": True,
-                     "events": [ev("a"), ev("b"), ev("c"), ev("d")]},
+                     "events": [ev("a"), ev("b"), ev("c"), ev("d"), ev("e"), ev("f")]},
                headers=ADMIN)
-check("4 eventos -> 422", r.status_code == 422, f"(status {r.status_code})")
+check("6 eventos -> 422", r.status_code == 422, f"(status {r.status_code})")
 r = client.put(f"/api/v1/admin/{D2}",
-               json={"has_palquinho": True, "events": [ev("a"), ev("b"), ev("c")]},
+               json={"has_palquinho": True,
+                     "events": [ev("a"), ev("b"), ev("c"), ev("d"), ev("e")]},
                headers=ADMIN)
-check("3 eventos -> 200", r.status_code == 200, f"(status {r.status_code})")
+check("5 eventos -> 200", r.status_code == 200, f"(status {r.status_code})")
 r = client.put(f"/api/v1/admin/{D2}",
-               json={"has_palquinho": True, "events": [ev("a"), ev("b"), ev("c"), ev("d")]},
+               json={"has_palquinho": True,
+                     "events": [ev("a"), ev("b"), ev("c"), ev("d"), ev("e"), ev("f")]},
                headers=ADMIN)
-check("4 eventos -> 422", r.status_code == 422, f"(status {r.status_code})")
+check("6 eventos -> 422", r.status_code == 422, f"(status {r.status_code})")
 
 print("5. evento sem link e evento com nota vazia")
 r = client.put(f"/api/v1/admin/{D1}",
@@ -114,6 +116,20 @@ check("link sem espaco em volta", r.json()["events"][1]["instagram"] == "https:/
 check("evento sem link fica null", r.json()["events"][0]["instagram"] is None)
 r = client.put(f"/api/v1/admin/{D1}", json={"has_palquinho": True, "events": [ev("")]}, headers=ADMIN)
 check("nota vazia -> 422", r.status_code == 422, f"(status {r.status_code})")
+
+print("5b. nota multilinha preservada (dois horários no mesmo evento)")
+r = client.put(f"/api/v1/admin/{D1}",
+               json={"has_palquinho": True,
+                     "events": [ev("10:30 - Beisebol UFSCar x Leu\n14:00 - Beisebol campeão x outro")]},
+               headers=ADMIN)
+check("PUT -> 200", r.status_code == 200, f"(status {r.status_code})")
+check("nota com newline salva",
+      r.json()["events"][0]["note"] == "10:30 - Beisebol UFSCar x Leu\n14:00 - Beisebol campeão x outro")
+check("stripped no lugar certo (sem espaco na borda)",
+      r.json()["events"][0]["note"].startswith("10:30") and r.json()["events"][0]["note"].endswith("outro"))
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("/days devolve nota multilinha", "\n" in d["events"][0]["note"])
 
 print("6. dia sem evento (so SIM/NÃO)")
 r = client.put(f"/api/v1/admin/{D1}", json={"has_palquinho": False, "events": []}, headers=ADMIN)

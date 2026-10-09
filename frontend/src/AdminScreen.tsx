@@ -4,7 +4,7 @@ import { api, ApiError, type DayOut, type EventDraft, type SuggestionOut } from 
 
 // Mesmo limite do backend (schemas.MAX_EVENTS_PER_DAY) — o "+" some aqui antes
 // de você chegar no 422, e o backend fecha a brecha se alguém chamar a API direto.
-const MAX_EVENTS = 3
+const MAX_EVENTS = 5
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -388,13 +388,13 @@ const setDay = async (has: boolean, isOther: boolean) => {
                           ✕
                         </button>
                       </div>
-                      <input
-                        className="input"
-                        type="text"
-                        placeholder="ex.: 14:00 - Churrasco da Bateria"
+                      <textarea
+                        className="textarea"
+                        placeholder="ex.: 14:00 - Churrasco da Bateria (Enter = nova linha no mesmo evento)"
                         value={ev.note}
                         onChange={(e) => updateEvent(idx, { note: e.target.value })}
                         maxLength={2000}
+                        rows={2}
                         aria-label={`Nota do evento ${idx + 1}`}
                       />
                       <input
