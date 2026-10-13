@@ -123,6 +123,7 @@ export const api = {
   confirmSuggestion: (
     id: number,
     has_palquinho: boolean,
+    is_other_event: boolean,
     organizer: string,
     instagram: string | null,
     adminKey: string
@@ -134,6 +135,7 @@ export const api = {
       // (nota = quem organiza). Aí é só ajustar o texto e salvar pelo painel.
       body: JSON.stringify({
         has_palquinho,
+        is_other_event,
         events: [{ note: organizer, instagram: instagram?.trim() || null }],
       }),
     }),

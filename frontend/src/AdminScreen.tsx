@@ -174,11 +174,11 @@ const setDay = async (has: boolean, isOther: boolean) => {
     }
   }
 
-  const confirmSuggestion = async (s: SuggestionOut) => {
+  const confirmSuggestion = async (s: SuggestionOut, has: boolean, isOther: boolean) => {
     setBusy(true)
     setFeedback('')
     try {
-      await api.confirmSuggestion(s.id, true, s.organizer, s.instagram ?? null, adminKey)
+      await api.confirmSuggestion(s.id, has, isOther, s.organizer, s.instagram ?? null, adminKey)
       await refresh()
     } catch (e) {
       setFeedback(e instanceof Error ? e.message : 'deu ruim')
@@ -491,8 +491,16 @@ const setDay = async (has: boolean, isOther: boolean) => {
                         )}
                       </div>
                       <div className="suggestion-actions">
-                        <button className="btn yes-btn small" onClick={() => confirmSuggestion(s)} disabled={busy}>
+                        <button className="btn yes-btn small" onClick={() => confirmSuggestion(s, true, false)} disabled={busy}>
                           confirmar SIM
+                        </button>
+                        <button
+                          className="btn other-btn small"
+                          onClick={() => confirmSuggestion(s, false, true)}
+                          disabled={busy}
+                          title="não tem palquinho, mas o dia é de outro rolê (laranja)"
+                        >
+                          NÃO (outro rolê)
                         </button>
                         <button className="btn ghost small" onClick={() => dismissSuggestion(s.id)} disabled={busy}>
                           descartar
