@@ -23,5 +23,5 @@ só muda quando o admin marca o dia. Quem souber de um palquinho manda uma suges
   - calendário mensal pra marcar **SIM** ou **NÃO** e desmarcar;
   - editor de eventos (cada um com nota + link, botão `+` até 5, `✕` apaga);
   - prévia ao vivo do dia abaixo do calendário, antes de salvar;
-  - sugestões com abas **pendentes / arquivo** (histórico com confirmada ✓ / descartada ✗);
+  - sugestões com abas **pendentes / arquivo** (histórico com confirmada ✓ / descartada ✗, cada uma com botão apagar);
 - Tema escuro em todo o site.
