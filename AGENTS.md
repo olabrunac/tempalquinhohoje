@@ -28,7 +28,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
   - `POST /suggestions` `{ day, organizer, instagram? }` → sugestão anônima de amigo (público).
   - Admin (header `X-Admin-Key` = `ADMIN_PASSWORD`):
     - `GET /admin/suggestions` → pendentes (default); `?status=solved` lista o arquivo (histórico, com `action` e `solved_at`).
-    - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, events[] }` → marca o dia (criando um evento a partir do pedido: nota = organizador) e resolve a sugestão (action=confirm).
+    - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, is_other_event?, events[] }` → marca o dia (criando um evento a partir do pedido: nota = organizador) e resolve a sugestão (action=confirm). No painel a sugestão pendente tem 3 botões: `confirmar SIM` (verde), `NÃO (outro rolê)` (laranja) e `descartar`.
     - `DELETE /admin/suggestions/{id}` → **pendente**: descarta (action=dismiss, vai pro arquivo); **já arquivada (solved)**: apaga de vez do banco — é assim que o admin limpa o arquivo e mantém só o importante.
     - `PUT /admin/{day}` `{ has_palquinho, is_other_event?, events[] }` → marca SIM **ou NÃO** (upsert). `is_other_event=true` deixa o dia laranja. A lista enviada **substitui** os eventos do dia (apagar na UI = sumir do banco).
     - `DELETE /admin/{day}` → desmarca o dia (os eventos do dia vão junto).
