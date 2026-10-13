@@ -200,6 +200,11 @@ const setDay = async (has: boolean, isOther: boolean) => {
     }
   }
 
+  const deleteArchivedSuggestion = async (s: SuggestionOut) => {
+    if (!window.confirm(`apagar de vez a sugestão de ${s.organizer} (${fmtPt(s.day)})? isso não volta.`)) return
+    await dismissSuggestion(s.id)
+  }
+
   if (checking) {
     return (
       <div className="screen admin">
@@ -520,6 +525,16 @@ const setDay = async (has: boolean, isOther: boolean) => {
                         {s.action === 'confirm' ? '✓ confirmada' : '✗ descartada'}
                         {s.solved_at ? ` · ${fmtShort(s.solved_at.slice(0, 10))}` : ''}
                       </span>
+                    </div>
+                    <div className="suggestion-actions">
+                      <button
+                        className="btn ghost small danger"
+                        onClick={() => deleteArchivedSuggestion(s)}
+                        disabled={busy}
+                        aria-label={`Apagar de vez a sugestão de ${s.organizer}`}
+                      >
+                        apagar
+                      </button>
                     </div>
                   </li>
                 ))}

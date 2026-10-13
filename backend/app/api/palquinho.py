@@ -286,10 +286,18 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
     dependencies=[Depends(require_admin)],
 )
 def dismiss_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
-    """Admin descarta a sugestão sem marcar o dia."""
+    """Admin descarta a sugestão sem marcar o dia.
+
+    Pendente -> vira 'dismiss' e vai pro arquivo (histórico). Já arquivada (solved)
+    -> some de vez do banco, pra manter o arquivo só com o que importa.
+    """
     sug = db.get(models.PalquinhoSuggestion, suggestion_id)
     if sug is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
+    if sug.status == "solved":
+        db.delete(sug)
+        db.commit()
+        return
     sug.status = "solved"
     sug.action = "dismiss"
     sug.solved_at = datetime.now()

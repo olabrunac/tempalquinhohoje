@@ -29,7 +29,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
   - Admin (header `X-Admin-Key` = `ADMIN_PASSWORD`):
     - `GET /admin/suggestions` → pendentes (default); `?status=solved` lista o arquivo (histórico, com `action` e `solved_at`).
     - `POST /admin/suggestions/{id}/confirm` `{ has_palquinho, events[] }` → marca o dia (criando um evento a partir do pedido: nota = organizador) e resolve a sugestão (action=confirm).
-    - `DELETE /admin/suggestions/{id}` → descarta a sugestão (action=dismiss).
+    - `DELETE /admin/suggestions/{id}` → **pendente**: descarta (action=dismiss, vai pro arquivo); **já arquivada (solved)**: apaga de vez do banco — é assim que o admin limpa o arquivo e mantém só o importante.
     - `PUT /admin/{day}` `{ has_palquinho, is_other_event?, events[] }` → marca SIM **ou NÃO** (upsert). `is_other_event=true` deixa o dia laranja. A lista enviada **substitui** os eventos do dia (apagar na UI = sumir do banco).
     - `DELETE /admin/{day}` → desmarca o dia (os eventos do dia vão junto).
     - `GET /admin/dashboard` → uma requisição só: `{ days, pending, archive }` — o painel admin usa esse (1 cold start, não 3 requisições).
@@ -47,15 +47,15 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Nota com link é clicável** e ganha indicativo visual (sublinhado + `↗`) pra não parecer texto morto. Nota sem link é texto normal.
 - **Migração da nota antiga** (`db.py migrate_day_notes_to_events`): dia que tinha `note` multilinha vira 1 evento por linha, **sem link** (a Columns `note`/`instagram` sobraram vazias no banco e não são mais lidas). Idempotente: só mexe em dia que tem nota e ainda não tem evento. Conferir o que ficou sem link com `python backend/listar_eventos.py`.
 - **Visitas**: vêm do **Vercel Analytics** (grátis, `@vercel/analytics`), não do banco. Ver no dashboard da Vercel, não no painel admin.
-- **Sugestões arquivam**: confirmada ou descartada vai pro **arquivo** (`status=solved`, com `action confirm/dismiss` + `solved_at`) — o admin confere o histórico antes de soltar o link.
+- **Sugestões arquivam**: confirmada ou descartada vai pro **arquivo** (`status=solved`, com `action confirm/dismiss` + `solved_at`) — o admin confere o histórico antes de soltar o link. No arquivo tem botão **apagar** que remove a sugestão de vez (DELETE em item solved), pra deixar só o importante.
 - **Nada de votação**: sugestão serve pra *informar* o admin (data + organizador), não pra votar SIM/NÃO.
 - **Calendário do admin**: verde = SIM marcado, contorno vermelho = NÃO marcado (com nota/link), neutro = sem marcação.
 - **Feedback visual**: confete arco-íris atrás do SIM quando tem palquinho; favicon ✅/❌ conforme o dia.
 
 ## Frontend (comportamento)
-- **Tela inicial**: SIM/NÃO gigante, data acima, faixa da semana atual no rodapé (dias verdes/vermelhos; hover mostra as notas do dia, clique abre o Instagram), lista de eventos com nota clicável quando tem link, botão "sabe de algum palquinho?" + link "admin" no canto superior direito.
+- **Tela inicial**: SIM/NÃO gigante, data acima, faixa da semana atual no rodapé (dias verdes/vermelhos; hover mostra as notas do dia, clique abre o Instagram), lista de eventos com nota clicável quando tem link, botão "quer divulgar um evento? manda aqui" + link "admin" no canto superior direito.
 - **Sugestão**: modal com **mini calendário** (navegável, dias passados bloqueados, dia escolhido em verde) + organizador + Instagram opcional.
-- **Admin**: login com senha, calendário mensal, painel do dia (SIM/NÃO/remover), **editor de eventos** (cada um com nota + link, botão `+` até 3, `✕` apaga), **prévia ao vivo** do dia abaixo do calendário, sugestões com abas **pendentes / arquivo**.
+- **Admin**: login com senha, calendário mensal, painel do dia (SIM/NÃO/remover), **editor de eventos** (cada um com nota + link, botão `+` até 5, `✕` apaga), **prévia ao vivo** do dia abaixo do calendário, sugestões com abas **pendentes / arquivo**.
 - **Mini calendário no modal e calendário do admin**: semana começa no domingo.
 
 ## Pendências / Backlog
