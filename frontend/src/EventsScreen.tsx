@@ -68,7 +68,7 @@ export default function EventsScreen() {
         <Link className="admin-link" to="/">
           ← voltar
         </Link>
-        <span className="admin-link" style={{ cursor: 'default' }}>outros eventos</span>
+        <span className="admin-link" style={{ cursor: 'default' }}>calendário de eventos</span>
       </header>
 
       <main className="admin-body events-body" style={{ gridTemplateColumns: '1fr' }}>

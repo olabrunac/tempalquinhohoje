@@ -266,7 +266,7 @@ export default function MainScreen() {
           </button>
         )}
         <Link className="corner-suggest" to="/eventos" style={{ display: 'inline-block', textAlign: 'center' }}>
-          outros eventos
+          calendário de eventos
         </Link>
       </div>
 
