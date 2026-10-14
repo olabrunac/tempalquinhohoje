@@ -363,14 +363,14 @@ body {
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 999px;
-  color: #fff;
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #000;
+  background: #fff;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 
 .corner-insta:hover {
-  filter: brightness(1.08);
+  filter: brightness(0.9);
   transform: scale(1.05);
 }
 
