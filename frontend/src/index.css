@@ -1237,3 +1237,175 @@ body {
     gap: 1rem;
   }
 }
+
+/* ---- compartilhar dia (imagem gerada no admin) ----
+   Cartão preto com confete, mesmo visual da tela principal. Desenhado em
+   tamanho "de tela" (feed 360px, stories 300px) e exportado com pixelRatio
+   pra 1080px. Renderiza on/off-screen; não aparece no site público. */
+
+.sc-card {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+.sc-feed {
+  width: 360px;
+  height: 360px;
+  padding: 22px;
+}
+.sc-story {
+  width: 300px;
+  height: 533.333px;
+  padding: 60px 24px;
+}
+
+.sc-top,
+.sc-bottom {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+.sc-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.sc-date {
+  color: #d5dbe4;
+  font-size: 0.92rem;
+  text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
+}
+
+.sc-big {
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 36px rgba(0, 0, 0, 1), 0 0 95px rgba(0, 0, 0, 0.92);
+}
+.sc-feed .sc-big {
+  font-size: 92px;
+}
+.sc-story .sc-big {
+  font-size: 96px;
+}
+.sc-big.sc-yes {
+  color: var(--green);
+}
+.sc-big.sc-no {
+  color: var(--red);
+}
+.sc-big.sc-other {
+  color: var(--orange);
+}
+
+.sc-note {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.35;
+  white-space: pre-line;
+  text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
+}
+.sc-story .sc-note {
+  font-size: 1.05rem;
+}
+.sc-handle {
+  font-size: 0.82rem;
+  color: #d5dbe4;
+  font-weight: 600;
+  text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
+}
+
+.sc-week {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+.sc-day {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
+}
+.sc-day .sc-dow {
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.sc-day .sc-num {
+  font-size: 0.82rem;
+  line-height: 1;
+}
+.sc-day.sc-yes {
+  background: var(--green);
+}
+.sc-day.sc-no {
+  background: var(--red);
+}
+.sc-day.sc-other {
+  background: var(--orange);
+}
+.sc-day.sc-viewing {
+  box-shadow: inset 0 0 0 3px #60a5fa, 0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+.sc-footer {
+  margin-top: 10px;
+  font-size: 0.68rem;
+  color: #aeb6c4;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
+}
+
+.sc-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.sc-confetti i {
+  position: absolute;
+  border-radius: 2px;
+  filter: saturate(0.78) brightness(0.82);
+}
+
+.modal.modal-wide {
+  width: min(96vw, 760px);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.share-modal-body {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+.share-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+.share-caption {
+  font-size: 0.78rem;
+  color: var(--muted);
+}

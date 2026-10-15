@@ -55,7 +55,8 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 ## Frontend (comportamento)
 - **Tela inicial**: SIM/NÃO gigante, data acima, faixa da semana atual no rodapé (dias verdes/vermelhos; hover mostra as notas do dia, clique abre o Instagram), lista de eventos com nota clicável quando tem link, botão "quer divulgar um evento? manda aqui" + link "admin" no canto superior direito.
 - **Sugestão**: modal com **mini calendário** (navegável, dias passados bloqueados, dia escolhido em verde) + organizador + Instagram opcional.
-- **Admin**: login com senha, calendário mensal, painel do dia (SIM/NÃO/remover), **editor de eventos** (cada um com nota + link, botão `+` até 5, `✕` apaga), **prévia ao vivo** do dia abaixo do calendário, sugestões com abas **pendentes / arquivo**.
+- **Admin**: login com senha, calendário mensal, painel do dia (SIM/NÃO/remover), **editor de eventos** (cada um com nota + link, botão `+` até 5, `✕` apaga), **prévia ao vivo** do dia abaixo do calendário, sugestões com abas **pendentes / arquivo**, botão **compartilhar dia (imagem)**.
+- **Compartilhar dia (imagem)** — provisório no admin (`ShareModal.tsx` + `ShareCard.tsx`, lib `html-to-image`): gera PNG do dia selecionado em **feed 1080×1080** e **stories 1080×1920**, com o mesmo visual da tela principal (SIM verde / NÃO vermelho / outro rolê laranja, confete, nota + `@` dos organizadores, listinha da semana com anel no dia). Usa o **rascunho** atual (o que está na tela); a semana vem do estado salvo dos dias. Cartão desenhado em 360px/300px e exportado via `pixelRatio` 3/3.6 → 1080. O `@` é extraído do link do Instagram (`instaHandle`). Se provar útil, pode subir pra tela principal.
 - **Mini calendário no modal e calendário do admin**: semana começa no domingo.
 
 ## Pendências / Backlog
