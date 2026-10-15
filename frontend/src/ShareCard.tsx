@@ -125,7 +125,7 @@ export default function ShareCard({ variant, day, state, events, week }: ShareCa
 
   return (
     <div className={`sc-card sc-${variant}`}>
-      <Confetti />
+      {state === 'yes' && <Confetti />}
       <div className="sc-top">
         <span className="sc-date">{fmtPtFull(day)}</span>
       </div>
