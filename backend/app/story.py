@@ -145,21 +145,22 @@ def _confetti_layer() -> Image.Image:
 
     for _ in range(90):
         color = _mute(CONFETTI_COLORS[int(rnd() * len(CONFETTI_COLORS))])
-        x0 = rnd() * W
-        y0 = rnd() * H
+        x = rnd() / 100 * W
+        y = rnd() / 100 * H
         w = (6 + rnd() * 6) * SCALE
         h = (11 + rnd() * 9) * SCALE
         rot = round(rnd() * 360)
         alpha = int((0.5 + rnd() * 0.3) * 255)
 
-        piece = Image.new("RGBA", (int(w) + 4, int(h) + 4), (0, 0, 0, 0))
+        piece = Image.new("RGBA", (int(w) + 2, int(h) + 2), (0, 0, 0, 0))
         pd = ImageDraw.Draw(piece)
         pd.rounded_rectangle(
-            [2, 2, int(w) + 2, int(h) + 2], radius=7, fill=(*color, alpha)
+            [1, 1, int(w), int(h)], radius=7, fill=(*color, alpha)
         )
-        E = piece.rotate(rot, expand=True, resample=Image.BICUBIC)
-        cx, cy = x0 + w / 2, y0 + h / 2
-        layer.alpha_composite(E, (int(cx - E.width / 2), int(cy - E.height / 2)))
+        piece = piece.rotate(rot, expand=True, resample=Image.BICUBIC)
+        layer.alpha_composite(
+            piece, (int(x - piece.width / 2), int(y - piece.height / 2))
+        )
     return layer
 
 
