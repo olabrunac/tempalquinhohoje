@@ -6,7 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .db import get_db, init_db
-from .api import palquinho
+from .api import cron, palquinho, story
 from .settings import IS_PROD
 
 # Em produção, /docs e /openapi.json ficam desligados: publicar a schema ajuda
@@ -44,6 +44,8 @@ async def security_headers(request: Request, call_next):
     return response
 
 app.include_router(palquinho.router, prefix="/api/v1", tags=["palquinho"])
+app.include_router(story.router, prefix="/api/v1", tags=["story"])
+app.include_router(cron.router, prefix="/api", tags=["cron"])
 
 
 @app.on_event("startup")
