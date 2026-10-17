@@ -15,6 +15,7 @@ export interface ShareWeekDay {
   dow: string
   state: ShareState
   viewing: boolean
+  notes: string[]
 }
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -48,11 +49,14 @@ export function instaHandle(url?: string | null): string | null {
 }
 
 // Monta a semana (domingo→sábado) que contém o dia compartilhado. Dias sem
-// marcação aparecem como "no" (mesmo default da tela principal).
+// marcação aparecem como "no" (mesmo default da tela principal). O dia central
+// usa o estado/notas que estão na tela (rascunho); os outros vêm do salvo.
 export function buildWeek(
   centerDay: string,
   centerState: ShareState,
+  centerNotes: string[],
   stateOf: (day: string) => ShareState,
+  notesOf: (day: string) => string[],
 ): ShareWeekDay[] {
   const [y, m, d] = centerDay.split('-').map(Number)
   const center = new Date(y, m - 1, d)
@@ -68,9 +72,18 @@ export function buildWeek(
       dow: WEEKDAYS[dt.getDay()],
       state: viewing ? centerState : stateOf(key),
       viewing,
+      notes: viewing ? centerNotes : notesOf(key),
     })
   }
   return out
+}
+
+// "Calendário da semana: 12 a 18 de outubro" (ou, virando o mês, com os dois meses).
+export function fmtWeekRange(week: ShareWeekDay[]): string {
+  const [, m1, d1] = week[0].day.split('-').map(Number)
+  const [, m2, d2] = week[week.length - 1].day.split('-').map(Number)
+  const core = m1 === m2 ? `${d1} a ${d2} de ${MONTHS[m1 - 1]}` : `${d1} de ${MONTHS[m1 - 1]} a ${d2} de ${MONTHS[m2 - 1]}`
+  return `Calendário da semana: ${core}`
 }
 
 function Confetti() {
@@ -145,6 +158,49 @@ export default function ShareCard({ variant, day, state, events, week }: ShareCa
         </div>
         <div className="sc-footer">tempalquinhohoje.com · @tempalquinhohoje</div>
       </div>
+    </div>
+  )
+}
+
+interface ShareWeekCardProps {
+  week: ShareWeekDay[]
+}
+
+// Cartão da semana (feed): lista vertical dos dias, cada um com seu quadrado
+// colorido e a(s) nota(s) do dia ao lado. Mesmo fundo preto e tipografia do card
+// do dia. Renderizado on/off-screen e exportado como PNG no ShareModal.
+export function ShareWeekCard({ week }: ShareWeekCardProps) {
+  return (
+    <div className="sc-card sc-feed sc-weekcard">
+      <div className="sc-top">
+        <span className="sc-date">{fmtWeekRange(week)}</span>
+      </div>
+      <div className="sc-week-list">
+        {week.map((d, i) => {
+          const hasContent = d.state !== 'no' && d.notes.length > 0
+          const prev = i > 0 ? week[i - 1] : null
+          const prevContent = prev ? prev.state !== 'no' && prev.notes.length > 0 : false
+          const showDivider = i > 0 && hasContent && prevContent
+          return (
+            <div key={d.day} className={`sc-wrow${showDivider ? ' sc-divider' : ''}`}>
+              <div className={`sc-wsq sc-${d.state}${hasContent ? '' : ' sc-empty'}`}>
+                <span className="sc-dow">{d.dow}</span>
+                <span className="sc-num">{d.num}</span>
+              </div>
+              {hasContent && (
+                <div className="sc-wnotes">
+                  {d.notes.map((n, i) => (
+                    <span key={i} className="sc-wnote">
+                      {n}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <div className="sc-footer">tempalquinhohoje.com · @tempalquinhohoje</div>
     </div>
   )
 }

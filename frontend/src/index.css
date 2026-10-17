@@ -379,24 +379,6 @@ body {
   height: 1.15rem;
 }
 
-/* Fileira com os ícones redondos (compartilhar + Instagram) no canto. */
-.corner-icons {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Botão de compartilhar: mesmo visual redondo/branco do Instagram, mas <button>. */
-.corner-share {
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-.corner-share:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .corner-admin {
   font-size: 0.85rem;
   color: #9ca3af;
@@ -1384,6 +1366,99 @@ body {
   box-shadow: inset 0 0 0 3px #60a5fa, 0 0 10px rgba(96, 165, 250, 0.5);
 }
 
+/* ---- cartão da semana (feed): dias em coluna + nota ao lado ---- */
+.sc-weekcard {
+  align-items: stretch;
+  text-align: left;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sc-weekcard .sc-top {
+  text-align: center;
+}
+.sc-weekcard .sc-footer {
+  margin-top: 0;
+  text-align: center;
+}
+.sc-week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  justify-content: center;
+}
+.sc-wrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+.sc-wrow:first-child {
+  padding-top: 0;
+}
+.sc-wrow:last-child {
+  padding-bottom: 0;
+}
+.sc-wrow.sc-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+.sc-wsq {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
+}
+.sc-wsq .sc-dow {
+  font-size: 0.4rem;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.sc-wsq .sc-num {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+.sc-wsq.sc-yes {
+  background: var(--green);
+}
+.sc-wsq.sc-no {
+  background: var(--red);
+}
+.sc-wsq.sc-other {
+  background: var(--orange);
+}
+/* Dia sem evento: quadradinho menor, pra destacar os dias que têm rolê. */
+.sc-wsq.sc-empty {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+.sc-wsq.sc-empty .sc-dow {
+  font-size: 0.3rem;
+}
+.sc-wsq.sc-empty .sc-num {
+  font-size: 0.54rem;
+}
+.sc-wnotes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.sc-wnote {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.26;
+  white-space: pre-line;
+}
+
 .sc-footer {
   margin-top: 10px;
   font-size: 0.68rem;
@@ -1426,4 +1501,43 @@ body {
 .share-caption {
   font-size: 0.78rem;
   color: var(--muted);
+}
+
+/* Botão só com ícone de compartilhar (admin). Fica ao lado das ações do dia. */
+.share-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.share-actions .btn {
+  flex: 1;
+}
+.share-actions .share-icon-btn {
+  flex: 0 0 auto;
+}
+.share-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.share-icon-btn:hover:not(:disabled) {
+  background: #1f1f1f;
+  border-color: #3a3a3a;
+}
+.share-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.share-icon-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }

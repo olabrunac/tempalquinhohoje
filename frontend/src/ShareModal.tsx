@@ -1,26 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
-import ShareCard, { buildWeek, type ShareEvent, type ShareState } from './ShareCard'
+import ShareCard, { buildWeek, ShareWeekCard, type ShareEvent, type ShareState } from './ShareCard'
 
 interface ShareModalProps {
   day: string
   state: ShareState
   events: ShareEvent[]
+  notes: string[]
   stateOf: (day: string) => ShareState
+  notesOf: (day: string) => string[]
   onClose: () => void
 }
 
-// Exporta o cartão como PNG. O cartão é desenhado em 360px (feed) e 300px
-// (stories) de largura; o pixelRatio leva pro tamanho final de 1080px.
-const PIXEL_RATIO: Record<'feed' | 'story', number> = { feed: 3, story: 3.6 }
+type Variant = 'week' | 'feed' | 'story'
 
-export default function ShareModal({ day, state, events, stateOf, onClose }: ShareModalProps) {
+// Exporta o cartão como PNG. O cartão é desenhado em 360px (feed/semana) e 300px
+// (stories) de largura; o pixelRatio leva pro tamanho final de 1080px.
+const PIXEL_RATIO: Record<Variant, number> = { week: 3, feed: 3, story: 3.6 }
+
+export default function ShareModal({ day, state, events, notes, stateOf, notesOf, onClose }: ShareModalProps) {
+  const weekRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
   const storyRef = useRef<HTMLDivElement>(null)
-  const [busy, setBusy] = useState<'feed' | 'story' | null>(null)
+  const [busy, setBusy] = useState<Variant | null>(null)
   const [error, setError] = useState('')
 
-  const week = buildWeek(day, state, stateOf)
+  const week = buildWeek(day, state, notes, stateOf, notesOf)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -31,8 +36,8 @@ export default function ShareModal({ day, state, events, stateOf, onClose }: Sha
   }, [onClose])
 
   const download = useCallback(
-    async (variant: 'feed' | 'story') => {
-      const node = variant === 'feed' ? feedRef.current : storyRef.current
+    async (variant: Variant) => {
+      const node = variant === 'week' ? weekRef.current : variant === 'feed' ? feedRef.current : storyRef.current
       if (!node) return
       setBusy(variant)
       setError('')
@@ -67,7 +72,7 @@ export default function ShareModal({ day, state, events, stateOf, onClose }: Sha
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <h2 id="share-title" className="modal-title">
-            compartilhar dia
+            compartilhar
           </h2>
           <button
             type="button"
@@ -82,6 +87,16 @@ export default function ShareModal({ day, state, events, stateOf, onClose }: Sha
         <p className="modal-sub">é assim que a imagem fica. baixa no tamanho que quiser e posta.</p>
 
         <div className="share-modal-body">
+          <div className="share-item">
+            <div ref={weekRef}>
+              <ShareWeekCard week={week} />
+            </div>
+            <span className="share-caption">semana · feed 1080 × 1080</span>
+            <button className="btn primary-btn" onClick={() => download('week')} disabled={busy !== null}>
+              {busy === 'week' ? 'gerando...' : 'baixar semana'}
+            </button>
+          </div>
+
           <div className="share-item">
             <div ref={feedRef}>
               <ShareCard variant="feed" day={day} state={state} events={events} week={week} />
