@@ -176,23 +176,26 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
         <span className="sc-date">{fmtWeekRange(week)}</span>
       </div>
       <div className="sc-week-list">
-        {week.map((d) => (
-          <div key={d.day} className="sc-wrow">
-            <div className={`sc-wsq sc-${d.state}`}>
-              <span className="sc-dow">{d.dow}</span>
-              <span className="sc-num">{d.num}</span>
-            </div>
-            {d.notes.length > 0 && d.state !== 'no' && (
-              <div className="sc-wnotes">
-                {d.notes.map((n, i) => (
-                  <span key={i} className="sc-wnote">
-                    {n}
-                  </span>
-                ))}
+        {week.map((d) => {
+          const hasContent = d.state !== 'no' && d.notes.length > 0
+          return (
+            <div key={d.day} className="sc-wrow">
+              <div className={`sc-wsq sc-${d.state}${hasContent ? '' : ' sc-empty'}`}>
+                <span className="sc-dow">{d.dow}</span>
+                <span className="sc-num">{d.num}</span>
               </div>
-            )}
-          </div>
-        ))}
+              {hasContent && (
+                <div className="sc-wnotes">
+                  {d.notes.map((n, i) => (
+                    <span key={i} className="sc-wnote">
+                      {n}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       <div className="sc-footer">tempalquinhohoje.com · @tempalquinhohoje</div>
     </div>

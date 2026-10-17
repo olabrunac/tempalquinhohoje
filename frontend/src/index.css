@@ -1423,6 +1423,18 @@ body {
 .sc-wsq.sc-other {
   background: var(--orange);
 }
+/* Dia sem evento: quadradinho menor, pra destacar os dias que têm rolê. */
+.sc-wsq.sc-empty {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+.sc-wsq.sc-empty .sc-dow {
+  font-size: 0.3rem;
+}
+.sc-wsq.sc-empty .sc-num {
+  font-size: 0.54rem;
+}
 .sc-wnotes {
   display: flex;
   flex-direction: column;
@@ -1482,8 +1494,12 @@ body {
 }
 
 /* Botão só com ícone de compartilhar (admin). Fica ao lado das ações do dia. */
+.share-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 .share-icon-btn {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   justify-content: center;
