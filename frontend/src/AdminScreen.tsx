@@ -257,15 +257,20 @@ const setDay = async (has: boolean, isOther: boolean) => {
   // A prévia e o painel do dia leem o rascunho, que já vem do salvo ao clicar no dia.
   const previewState: 'yes' | 'no' | 'other' = draftState ?? (selected ? 'no' : 'no')
 
-  // Dados da imagem "compartilhar dia": usa o rascunho (o que está na tela),
-  // e a semana vem do estado salvo dos outros dias do calendário.
+  // Dados das imagens "compartilhar": usa o rascunho (o que está na tela) do dia
+  // selecionado, e a semana vem do estado/notas salvos dos outros dias.
   const shareEvents: ShareEvent[] = eventDrafts
     .filter((e) => e.note.trim())
     .map((e) => ({ note: e.note.trim(), instagram: e.instagram }))
+  const shareNotes = eventDrafts.map((e) => e.note.trim()).filter(Boolean)
   const stateOf = (k: string): ShareState => {
     const e = dayMap.get(k)
     if (!e) return 'no'
     return e.has_palquinho ? 'yes' : e.is_other_event ? 'other' : 'no'
+  }
+  const notesOf = (k: string): string[] => {
+    const e = dayMap.get(k)
+    return (e?.events ?? []).map((ev) => ev.note.trim()).filter(Boolean)
   }
 
   const nav = (delta: number) => {
@@ -463,8 +468,8 @@ const setDay = async (has: boolean, isOther: boolean) => {
                   className="share-icon-btn"
                   onClick={() => setShowShare(true)}
                   disabled={busy}
-                  aria-label="Compartilhar dia (gerar imagem)"
-                  title="compartilhar dia (gerar imagem)"
+                  aria-label="Compartilhar (gerar imagem)"
+                  title="compartilhar (gerar imagem)"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -596,7 +601,9 @@ const setDay = async (has: boolean, isOther: boolean) => {
           day={selectedDay}
           state={previewState}
           events={shareEvents}
+          notes={shareNotes}
           stateOf={stateOf}
+          notesOf={notesOf}
           onClose={() => setShowShare(false)}
         />
       )}
