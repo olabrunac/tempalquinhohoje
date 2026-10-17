@@ -1383,7 +1383,7 @@ body {
 .sc-week-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
   flex: 1;
   justify-content: center;
 }
@@ -1442,7 +1442,7 @@ body {
   min-width: 0;
 }
 .sc-wnote {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 600;
   color: #e5e7eb;
   line-height: 1.26;
@@ -1498,6 +1498,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+}
+.share-actions .btn {
+  flex: 1;
+}
+.share-actions .share-icon-btn {
+  flex: 0 0 auto;
 }
 .share-icon-btn {
   display: inline-flex;

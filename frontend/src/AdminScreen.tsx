@@ -464,11 +464,6 @@ const setDay = async (has: boolean, isOther: boolean) => {
                 </div>
 
                 <div className="share-actions">
-                  {selected && (
-                    <button className="btn ghost danger" onClick={removeDay} disabled={busy}>
-                      remover marcação
-                    </button>
-                  )}
                   <button
                     type="button"
                     className="share-icon-btn"
@@ -491,6 +486,11 @@ const setDay = async (has: boolean, isOther: boolean) => {
                       <line x1="12" y1="2" x2="12" y2="15" />
                     </svg>
                   </button>
+                  {selected && (
+                    <button className="btn ghost danger" onClick={removeDay} disabled={busy}>
+                      remover marcação
+                    </button>
+                  )}
                 </div>
               </>
             )}
