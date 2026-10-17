@@ -176,10 +176,13 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
         <span className="sc-date">{fmtWeekRange(week)}</span>
       </div>
       <div className="sc-week-list">
-        {week.map((d) => {
+        {week.map((d, i) => {
           const hasContent = d.state !== 'no' && d.notes.length > 0
+          const prev = i > 0 ? week[i - 1] : null
+          const prevContent = prev ? prev.state !== 'no' && prev.notes.length > 0 : false
+          const showDivider = i > 0 && hasContent && prevContent
           return (
-            <div key={d.day} className="sc-wrow">
+            <div key={d.day} className={`sc-wrow${showDivider ? ' sc-divider' : ''}`}>
               <div className={`sc-wsq sc-${d.state}${hasContent ? '' : ' sc-empty'}`}>
                 <span className="sc-dow">{d.dow}</span>
                 <span className="sc-num">{d.num}</span>
