@@ -178,7 +178,7 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
       <div className="sc-week-list">
         {week.map((d) => (
           <div key={d.day} className="sc-wrow">
-            <div className={`sc-wsq sc-${d.state}${d.viewing ? ' sc-viewing' : ''}`}>
+            <div className={`sc-wsq sc-${d.state}`}>
               <span className="sc-dow">{d.dow}</span>
               <span className="sc-num">{d.num}</span>
             </div>
