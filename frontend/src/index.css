@@ -1392,6 +1392,10 @@ body {
   align-items: center;
   gap: 10px;
 }
+/* Linha fina e bem apagada separando um dia do outro. */
+.sc-wrow + .sc-wrow {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
 .sc-wsq {
   flex: 0 0 auto;
   width: 28px;
