@@ -5,8 +5,6 @@ import { api, type DayOut, type EventItem, type TodayOut } from './api'
 import { setFavicon } from './favicon'
 import { VERSION } from './version'
 import SuggestionModal from './SuggestionModal'
-import ShareModal from './ShareModal'
-import type { ShareEvent, ShareState } from './ShareCard'
 
 const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 const WEEKDAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -49,17 +47,6 @@ function getWeekDays(start: Date): Date[] {
   })
 }
 
-// Lê o ?dia= da URL do link compartilhado (2026-10-15). Devolve null se não
-// tiver ou se for inválido — aí a tela fica no comportamento normal (hoje).
-function parseDiaParam(): string | null {
-  const v = new URLSearchParams(window.location.search).get('dia')
-  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null
-  const [y, m, d] = v.split('-').map(Number)
-  const dt = new Date(y, m - 1, d)
-  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null
-  return v
-}
-
 function fireConfetti() {
   const colors = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899']
   const defaults = { spread: 70, ticks: 220, gravity: 1, startVelocity: 45, colors, zIndex: 1 } as const
@@ -90,10 +77,8 @@ export default function MainScreen() {
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
   const [showSuggestion, setShowSuggestion] = useState(false)
-  const [showShare, setShowShare] = useState(false)
   const [thankYou, setThankYou] = useState(false)
-  const [daysLoaded, setDaysLoaded] = useState(false)
-  const [selectedDayIso, setSelectedDayIso] = useState<string | null>(() => parseDiaParam())
+  const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -110,9 +95,7 @@ export default function MainScreen() {
   }, [navigate, showSuggestion])
 
   const [weekStart, setWeekStart] = useState<Date>(() => {
-    const dia = parseDiaParam()
-    // Link compartilhado: abre já na semana daquele dia, com ele selecionado.
-    const t = dia ? new Date(dia + 'T12:00:00') : new Date()
+    const t = new Date()
     const start = new Date(t)
     start.setDate(t.getDate() - t.getDay())
     return start
@@ -148,11 +131,8 @@ export default function MainScreen() {
       .getDays()
       .then((d) => {
         setDays(d)
-        setDaysLoaded(true)
       })
-      .catch(() => {
-        setDaysLoaded(true)
-      })
+      .catch(() => {})
   }, [])
 
   const todayIso = iso(new Date())
@@ -164,23 +144,11 @@ export default function MainScreen() {
 // has_palquinho null = não marcado (mostra NÃO). O laranja vem de is_other_event,
   // que o admin escolheu no botão — o dia pode ter nota e continuar vermelho.
   const isOther = currentDayData?.has_palquinho === false && currentDayData.is_other_event
-  // Hoje depende do /today; um dia navegado/compartilhado depende do /days —
-  // os dois precisam estar prontos antes de mostrar SIM/NÃO (senão pisca NÃO).
-  const loading = !error && (!today || (activeIso !== todayIso && !daysLoaded))
+  const loading = !today && !error && activeIso === todayIso
   const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
 
   const week = getWeekDays(weekStart)
   const activeIndex = week.findIndex((d) => iso(d) === activeIso)
-
-  // Dados da imagem "compartilhar dia": o dia em exibição (hoje ou navegado na
-  // semana). A cor e os eventos vêm do que está na tela; a semana, dos dias salvos.
-  const shareState: ShareState = hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
-  const shareEvents: ShareEvent[] = (currentDayData?.events ?? []).map((e) => ({ note: e.note, instagram: e.instagram }))
-  const shareStateOf = (k: string): ShareState => {
-    const dd = k === todayIso ? today : dayMap.get(k)
-    if (!dd) return 'no'
-    return dd.has_palquinho ? 'yes' : dd.is_other_event ? 'other' : 'no'
-  }
 
   const goLeft = () => {
     if (activeIndex > 0) {
@@ -300,36 +268,20 @@ export default function MainScreen() {
         <Link className="corner-suggest" to="/eventos" style={{ display: 'inline-block', textAlign: 'center' }}>
           calendário de eventos
         </Link>
-        <div className="corner-icons">
-          <button
-            type="button"
-            className="corner-insta corner-share"
-            onClick={() => setShowShare(true)}
-            disabled={loading}
-            aria-label="Compartilhar o dia (gerar imagem)"
-            title="compartilhar o dia (gerar imagem)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
-              <polyline points="16 6 12 2 8 6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
-            </svg>
-          </button>
-          <a
-            className="corner-insta"
-            href="https://www.instagram.com/tempalquinhohoje/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram do tem palquinho hoje"
-            title="@tempalquinhohoje no Instagram"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-          </a>
-        </div>
+        <a
+          className="corner-insta"
+          href="https://www.instagram.com/tempalquinhohoje/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram do tem palquinho hoje"
+          title="@tempalquinhohoje no Instagram"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+          </svg>
+        </a>
       </div>
 
       <span className="app-version">v{VERSION}</span>
@@ -342,16 +294,6 @@ export default function MainScreen() {
             setThankYou(true)
             setTimeout(() => setThankYou(false), 5000)
           }}
-        />
-      )}
-
-      {showShare && (
-        <ShareModal
-          day={activeIso}
-          state={shareState}
-          events={shareEvents}
-          stateOf={shareStateOf}
-          onClose={() => setShowShare(false)}
         />
       )}
     </div>
