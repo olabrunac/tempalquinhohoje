@@ -1371,15 +1371,18 @@ body {
   align-items: stretch;
   text-align: left;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 .sc-weekcard .sc-top {
   text-align: center;
 }
+.sc-weekcard .sc-footer {
+  margin-top: 0;
+}
 .sc-week-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   flex: 1;
   justify-content: center;
 }
@@ -1390,8 +1393,8 @@ body {
 }
 .sc-wsq {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -1402,12 +1405,12 @@ body {
   text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
 }
 .sc-wsq .sc-dow {
-  font-size: 0.42rem;
+  font-size: 0.4rem;
   text-transform: uppercase;
   opacity: 0.85;
 }
 .sc-wsq .sc-num {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   line-height: 1;
 }
 .sc-wsq.sc-yes {
@@ -1425,14 +1428,14 @@ body {
 .sc-wnotes {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   min-width: 0;
 }
 .sc-wnote {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #e5e7eb;
-  line-height: 1.25;
+  line-height: 1.26;
   white-space: pre-line;
 }
 

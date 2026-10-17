@@ -78,12 +78,12 @@ export function buildWeek(
   return out
 }
 
-// "semana do dia 12 ao 18 de outubro" (ou, virando o mês, com os dois meses).
+// "Calendário da semana: 12 a 18 de outubro" (ou, virando o mês, com os dois meses).
 export function fmtWeekRange(week: ShareWeekDay[]): string {
   const [, m1, d1] = week[0].day.split('-').map(Number)
   const [, m2, d2] = week[week.length - 1].day.split('-').map(Number)
-  if (m1 === m2) return `semana do dia ${d1} ao ${d2} de ${MONTHS[m1 - 1]}`
-  return `semana do dia ${d1} de ${MONTHS[m1 - 1]} ao ${d2} de ${MONTHS[m2 - 1]}`
+  const core = m1 === m2 ? `${d1} a ${d2} de ${MONTHS[m1 - 1]}` : `${d1} de ${MONTHS[m1 - 1]} a ${d2} de ${MONTHS[m2 - 1]}`
+  return `Calendário da semana: ${core}`
 }
 
 function Confetti() {
@@ -182,7 +182,7 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
               <span className="sc-dow">{d.dow}</span>
               <span className="sc-num">{d.num}</span>
             </div>
-            {d.notes.length > 0 && (
+            {d.notes.length > 0 && d.state !== 'no' && (
               <div className="sc-wnotes">
                 {d.notes.map((n, i) => (
                   <span key={i} className="sc-wnote">
