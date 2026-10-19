@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --green:#16a34a; --red:#dc2626; --orange:#f97316; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background:#000; width:360px; height:360px; overflow:hidden;
+  }
+
+  .sc-card {
+    position: relative; overflow: hidden; background:#000; color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    text-align:center;
+  }
+  .sc-feed { width:360px; height:360px; padding:20px; }
+
+  .sc-top, .sc-bottom { position:relative; z-index:2; width:100%; }
+  .sc-content {
+    position:relative; z-index:2; width:100%;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+
+  .sc-note {
+    font-size:.82rem; font-weight:700; color:#ffffff; line-height:1.45;
+    white-space:pre-line;
+    text-shadow: 0 0 2px #000, 0 0 5px #000, 0 0 11px #000, 0 0 24px rgba(0,0,0,1), 0 0 52px rgba(0,0,0,.98), 0 0 100px rgba(0,0,0,.92);
+  }
+
+  .sc-week { display:flex; gap:14px; justify-content:center; }
+  .sc-leg { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .sc-day {
+    width:36px; height:36px; border-radius:9px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-weight:700; color:#fff;
+    text-shadow: 0 0 14px rgba(0,0,0,.95), 0 0 30px rgba(0,0,0,.85);
+  }
+  .sc-day.sc-yes { background:var(--green); }
+  .sc-day.sc-no { background:var(--red); }
+  .sc-day.sc-other { background:var(--orange); }
+  .sc-leg-cap {
+    font-size:.6rem; font-weight:800; color:#ffffff; letter-spacing:.01em;
+    text-shadow: 0 0 2px #000, 0 0 5px #000, 0 0 11px #000, 0 0 24px rgba(0,0,0,1), 0 0 52px rgba(0,0,0,.98);
+  }
+
+  .sc-footer {
+    margin-top:8px; font-size:.8rem; font-weight:700; color:#e2e8f0; letter-spacing:.02em;
+    text-shadow: 0 0 2px #000, 0 0 5px #000, 0 0 11px #000, 0 0 24px rgba(0,0,0,1), 0 0 52px rgba(0,0,0,.98);
+  }
+  .sc-footer svg { width:.86rem; height:.86rem; vertical-align:-1.5px; }
+
+  .sc-confetti { position:absolute; inset:0; z-index:0; overflow:hidden; }
+  .sc-confetti i { position:absolute; border-radius:2px; filter:saturate(.78) brightness(.82); }
+</style>
+</head>
+<body>
+<div class="sc-card sc-feed">
+  <div class="sc-confetti" id="cf"></div>
+  <div class="sc-content">
+    <div class="sc-note">INFORMAÇÕES:
+Além de palquinhos, também divulgamos OUTROS EVENTOS que rolam pela UFSCar!
+Fique de olho no calendário para ficar por dentro de tudo
+Tem ou sabe de algum evento para divulgar? Manda uma sugestão pelo site ou pelo Instagram!
+Quer anunciar um evento sem ligação com a UFSCar? Também entre em contato para conversarmos
+Lembre-se: pensou se tem palquinho, pensou tempalquinhohoje.com 😺👍</div>
+  </div>
+  <div class="sc-bottom">
+    <div class="sc-week">
+      <div class="sc-leg"><div class="sc-day sc-yes"></div><span class="sc-leg-cap">sim</span></div>
+      <div class="sc-leg"><div class="sc-day sc-other"></div><span class="sc-leg-cap">outro evento</span></div>
+      <div class="sc-leg"><div class="sc-day sc-no"></div><span class="sc-leg-cap">não</span></div>
+    </div>
+    <div class="sc-footer">tempalquinhohoje.com · <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg> tempalquinhohoje</div>
+  </div>
+</div>
+<script>
+  var COLORS = ['#ef4444','#f97316','#facc15','#16a34a','#3b82f6','#6366f1','#8b5cf6','#ec4899'];
+  var seed = 7;
+  function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  var host = document.getElementById('cf');
+  var html = '';
+  for (var i = 0; i < 90; i++) {
+    var color = COLORS[Math.floor(rnd() * COLORS.length)];
+    var x = rnd() * 100;
+    var y = rnd() * 100;
+    var w = 6 + rnd() * 6;
+    var h = 11 + rnd() * 9;
+    var r = Math.round(rnd() * 360);
+    var o = 0.5 + rnd() * 0.3;
+    html += '<i style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%;width:'+w.toFixed(1)+'px;height:'+h.toFixed(1)+'px;background:'+color+';transform:rotate('+r+'deg);opacity:'+o.toFixed(2)+'"></i>';
+  }
+  host.innerHTML = html;
+</script>
+</body>
+</html>
