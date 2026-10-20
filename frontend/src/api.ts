@@ -131,8 +131,9 @@ export const api = {
     request<DayOut>(`/admin/suggestions/${id}/confirm`, {
       method: 'POST',
       headers: jsonHeaders({ 'X-Admin-Key': adminKey }),
-      // Confirmar já marca o dia e cria o primeiro evento com o pedido de quem sugeriu
-      // (nota = quem organiza). Aí é só ajustar o texto e salvar pelo painel.
+      // Confirmar marca o dia e ACRESCENTA o evento do pedido de quem sugeriu
+      // (nota = quem organiza) aos eventos que o dia já tem. Aí é só ajustar o texto
+      // e salvar pelo painel.
       body: JSON.stringify({
         has_palquinho,
         is_other_event,
