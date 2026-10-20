@@ -266,17 +266,53 @@ def get_dashboard(db: Session = Depends(get_db)):
     dependencies=[Depends(require_admin)],
 )
 def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
-    """Admin confirma a sugestão: marca o dia e resolve a sugestão."""
+    """Admin confirma a sugestão: marca o dia e ACRESCENTA o evento do pedido aos existentes.
+
+    Nunca substitui a lista: o dia pode já ter eventos marcados manualmente, e confirmar
+    a sugestão não pode apagá-los (era o bug). A lista enviada entra no fim, respeitando
+    o limite de MAX_EVENTS_PER_DAY.
+    """
     sug = db.get(models.PalquinhoSuggestion, suggestion_id)
     if sug is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sugestão não encontrada")
+    if sug.status == "solved":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Sugestão já resolvida")
+
+    existing = (
+        db.query(models.PalquinhoEvent)
+        .filter(models.PalquinhoEvent.day == sug.day)
+        .order_by(models.PalquinhoEvent.position, models.PalquinhoEvent.id)
+        .all()
+    )
+    incoming = [e for e in payload.events if e.note.strip()]
+    if len(existing) + len(incoming) > schemas.MAX_EVENTS_PER_DAY:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"O dia já tem {len(existing)} eventos — remova algum antes de confirmar a sugestão.",
+        )
+
     row = _upsert_day(db, sug.day, payload.has_palquinho, payload.is_other_event)
-    events = _replace_events(db, sug.day, payload.events)
+    next_pos = max((e.position for e in existing), default=0) + 1
+    for i, ev in enumerate(incoming):
+        db.add(
+            models.PalquinhoEvent(
+                day=sug.day,
+                position=next_pos + i,
+                note=ev.note.strip(),
+                instagram=(ev.instagram or "").strip() or None,
+            )
+        )
     sug.status = "solved"
     sug.action = "confirm"
     sug.solved_at = datetime.now()
     db.commit()
     db.refresh(row)
+    events = (
+        db.query(models.PalquinhoEvent)
+        .filter(models.PalquinhoEvent.day == sug.day)
+        .order_by(models.PalquinhoEvent.position, models.PalquinhoEvent.id)
+        .all()
+    )
     return _day_out(row, events)
 
 

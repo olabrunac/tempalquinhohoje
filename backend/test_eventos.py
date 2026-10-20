@@ -204,6 +204,49 @@ check("marcador [EVENTO] removido",
 check("migrado sem link", all(r[2] is None for r in rows))
 check("positions 1 e 2", [r[0] for r in rows] == [1, 2])
 
+print("10. confirmar sugestao ACRESCENTA o evento (nao apaga os existentes)")
+client.put(f"/api/v1/admin/{D1}",
+           json={"has_palquinho": True,
+                 "events": [ev("14:00 - Beisebol"), ev("19:00 - Palquinho")]}, headers=ADMIN)
+r = client.post("/api/v1/suggestions", json={"day": D1, "organizer": "João"})
+check("sugestao criada -> 201", r.status_code == 201, f"(status {r.status_code})")
+sid = r.json()["id"]
+r = client.post(f"/api/v1/admin/suggestions/{sid}/confirm",
+                json={"has_palquinho": True, "events": [ev("João")]}, headers=ADMIN)
+check("confirm -> 200", r.status_code == 200, f"(status {r.status_code})")
+notas = [e["note"] for e in r.json()["events"]]
+check("3 eventos (2 antigos + 1 novo)", len(notas) == 3, f"(veio {notas})")
+check("antigos preservados na ordem", notas[:2] == ["14:00 - Beisebol", "19:00 - Palquinho"])
+check("novo evento entra no fim", notas[2] == "João")
+check("positions 1..3", [e["position"] for e in r.json()["events"]] == [1, 2, 3])
+r = client.get("/api/v1/admin/suggestions?status=solved", headers=ADMIN)
+check("sugestao vai pro arquivo como confirm",
+      any(s["id"] == sid and s["action"] == "confirm" for s in r.json()))
+
+print("10b. confirmar de novo a mesma sugestao -> 409 e nao duplica")
+r = client.post(f"/api/v1/admin/suggestions/{sid}/confirm",
+                json={"has_palquinho": True, "events": [ev("João")]}, headers=ADMIN)
+check("sugestao ja resolvida -> 409", r.status_code == 409, f"(status {r.status_code})")
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D1)
+check("continua com 3 eventos", len(d["events"]) == 3, f"(veio {len(d['events'])})")
+
+print("10c. confirmar em dia cheio (5) -> 409 e sugestao fica pendente")
+client.put(f"/api/v1/admin/{D2}",
+           json={"has_palquinho": True, "events": [ev("e1"), ev("e2"), ev("e3"), ev("e4"), ev("e5")]},
+           headers=ADMIN)
+r = client.post("/api/v1/suggestions", json={"day": D2, "organizer": "Maria"})
+sid2 = r.json()["id"]
+r = client.post(f"/api/v1/admin/suggestions/{sid2}/confirm",
+                json={"has_palquinho": True, "events": [ev("Maria")]}, headers=ADMIN)
+check("dia cheio -> 409", r.status_code == 409, f"(status {r.status_code})")
+r = client.get("/api/v1/days")
+d = next(x for x in r.json() if x["day"] == D2)
+check("5 eventos intactos", len(d["events"]) == 5, f"(veio {len(d['events'])})")
+check("nada de evento novo", all(e["note"] != "Maria" for e in d["events"]))
+r = client.get("/api/v1/admin/suggestions", headers=ADMIN)
+check("sugestao continua pendente", any(s["id"] == sid2 for s in r.json()))
+
 print()
 print("RESULTADO:", "TODOS OS TESTES PASSARAM" if ok else "HOUVE FALHAS")
 sys.exit(0 if ok else 1)
