@@ -76,6 +76,7 @@ export default function MainScreen() {
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
@@ -93,6 +94,15 @@ export default function MainScreen() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate, showSuggestion])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [menuOpen])
 
   const [weekStart, setWeekStart] = useState<Date>(() => {
     const t = new Date()
@@ -261,28 +271,66 @@ export default function MainScreen() {
         {thankYou ? (
           <div className="corner-thanks">mandado! o admin vai confirmar</div>
         ) : (
-          <button className="corner-suggest" onClick={() => setShowSuggestion(true)}>
-            quer divulgar um evento? manda aqui
+          <button
+            type="button"
+            className="corner-gear"
+            onClick={() => setMenuOpen(true)}
+            aria-label="abrir menu"
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            title="menu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
           </button>
         )}
-        <Link className="corner-suggest" to="/eventos" style={{ display: 'inline-block', textAlign: 'center' }}>
-          calendário de eventos
-        </Link>
-        <a
-          className="corner-insta"
-          href="https://www.instagram.com/tempalquinhohoje/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Instagram do tem palquinho hoje"
-          title="@tempalquinhohoje no Instagram"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-          </svg>
-        </a>
       </div>
+
+      {menuOpen && (
+        <div className="modal-backdrop" onClick={() => setMenuOpen(false)}>
+          <div
+            className="menu-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="menu"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="menu-item menu-item-primary"
+              autoFocus
+              onClick={() => {
+                setMenuOpen(false)
+                setShowSuggestion(true)
+              }}
+            >
+              quer divulgar um evento? manda aqui
+            </button>
+            <Link className="menu-item" to="/eventos" onClick={() => setMenuOpen(false)}>
+              calendário de eventos
+            </Link>
+            <a
+              className="menu-item menu-item-insta"
+              href="https://www.instagram.com/tempalquinhohoje/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMenuOpen(false)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
+              @tempalquinhohoje
+            </a>
+            <p className="menu-note">
+              O tempalquinhohoje é uma iniciativa autônoma de estudantes sem relação com organizadores e instituições da universidade!
+            </p>
+          </div>
+        </div>
+      )}
 
       <span className="app-version">v{VERSION}</span>
 
