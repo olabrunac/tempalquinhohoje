@@ -448,8 +448,31 @@ const setDay = async (has: boolean, isOther: boolean) => {
                   <button className="btn yes-btn" onClick={() => setDay(true, false)} disabled={busy}>
                     marcar SIM
                   </button>
-                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-                    <button className="btn no-btn" onClick={() => setDay(false, false)} disabled={busy}>
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="share-icon-btn"
+                      onClick={() => setShowShare(true)}
+                      disabled={busy}
+                      aria-label="Compartilhar (gerar imagem)"
+                      title="compartilhar (gerar imagem)"
+                      style={{ flex: '0 0 auto' }}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+                        <polyline points="16 6 12 2 8 6" />
+                        <line x1="12" y1="2" x2="12" y2="15" />
+                      </svg>
+                    </button>
+                    <button className="btn no-btn" onClick={() => setDay(false, false)} disabled={busy} style={{ flex: 1 }}>
                       marcar NÃO
                     </button>
                     <button
@@ -457,6 +480,7 @@ const setDay = async (has: boolean, isOther: boolean) => {
                       onClick={() => setDay(false, true)}
                       disabled={busy}
                       title="não tem palquinho, mas o dia é de outro rolê (laranja)"
+                      style={{ flex: 1 }}
                     >
                       NÃO (outro rolê)
                     </button>
@@ -464,28 +488,6 @@ const setDay = async (has: boolean, isOther: boolean) => {
                 </div>
 
                 <div className="share-actions">
-                  <button
-                    type="button"
-                    className="share-icon-btn"
-                    onClick={() => setShowShare(true)}
-                    disabled={busy}
-                    aria-label="Compartilhar (gerar imagem)"
-                    title="compartilhar (gerar imagem)"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
-                      <polyline points="16 6 12 2 8 6" />
-                      <line x1="12" y1="2" x2="12" y2="15" />
-                    </svg>
-                  </button>
                   {selected && (
                     <button className="btn ghost danger" onClick={removeDay} disabled={busy}>
                       remover marcação
