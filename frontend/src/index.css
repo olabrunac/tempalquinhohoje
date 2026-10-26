@@ -1288,8 +1288,8 @@ body {
 }
 .sc-feed {
   width: 360px;
-  height: 360px;
-  padding: 22px;
+  height: 450px;
+  padding: 24px 22px;
 }
 .sc-story {
   width: 300px;
@@ -1403,7 +1403,7 @@ body {
   align-items: stretch;
   text-align: left;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 .sc-weekcard .sc-top {
   text-align: center;

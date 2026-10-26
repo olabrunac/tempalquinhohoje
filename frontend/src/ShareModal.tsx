@@ -91,7 +91,7 @@ export default function ShareModal({ day, state, events, notes, stateOf, notesOf
             <div ref={weekRef}>
               <ShareWeekCard week={week} />
             </div>
-            <span className="share-caption">semana · feed 1080 × 1080</span>
+            <span className="share-caption">semana · feed 1080 × 1350</span>
             <button className="btn primary-btn" onClick={() => download('week')} disabled={busy !== null}>
               {busy === 'week' ? 'gerando...' : 'baixar semana'}
             </button>
@@ -101,7 +101,7 @@ export default function ShareModal({ day, state, events, notes, stateOf, notesOf
             <div ref={feedRef}>
               <ShareCard variant="feed" day={day} state={state} events={events} week={week} />
             </div>
-            <span className="share-caption">feed · 1080 × 1080</span>
+            <span className="share-caption">feed · 1080 × 1350</span>
             <button className="btn primary-btn" onClick={() => download('feed')} disabled={busy !== null}>
               {busy === 'feed' ? 'gerando...' : 'baixar feed'}
             </button>
