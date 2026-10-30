@@ -72,7 +72,6 @@ function fitWeekGap(el: HTMLElement) {
 export default function MainScreen() {
   const navigate = useNavigate()
   const weekRef = useRef<HTMLElement>(null)
-  const confettiFired = useRef(false)
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
@@ -128,10 +127,6 @@ export default function MainScreen() {
       .then((t) => {
         setToday(t)
         setFavicon(t.has_palquinho === true)
-        if (t.has_palquinho === true && !confettiFired.current) {
-          confettiFired.current = true
-          fireConfetti()
-        }
       })
       .catch((e: Error) => {
         setError(e.message)
@@ -156,6 +151,13 @@ export default function MainScreen() {
   const isOther = currentDayData?.has_palquinho === false && currentDayData.is_other_event
   const loading = !today && !error && activeIso === todayIso
   const screenClass = loading ? 'unknown' : hasPalquinho ? 'yes' : isOther ? 'other' : 'no'
+
+  // Confete sempre que o dia visto vira SIM: ao abrir o site num dia SIM e ao
+  // navegar pra um dia SIM. Clicar no SIM também solta de novo (onClick abaixo).
+  useEffect(() => {
+    if (loading || !hasPalquinho) return
+    fireConfetti()
+  }, [activeIso, hasPalquinho, loading])
 
   const week = getWeekDays(weekStart)
   const activeIndex = week.findIndex((d) => iso(d) === activeIso)
@@ -210,7 +212,21 @@ export default function MainScreen() {
               )}
             </div>
             <p className="date-line">{fmtDay(activeIso)}</p>
-            <h1 className="big-answer">{hasPalquinho ? 'SIM' : (activeIso === '2026-10-04' || activeIso === '2026-10-25') ? '13' : 'NÃO'}</h1>
+            {hasPalquinho ? (
+              <h1 className="big-answer">
+                <button
+                  type="button"
+                  className="big-answer-btn"
+                  onClick={fireConfetti}
+                  aria-label="soltar confete de novo"
+                  title="clicou no SIM? mais confete"
+                >
+                  SIM
+                </button>
+              </h1>
+            ) : (
+              <h1 className="big-answer">{(activeIso === '2026-10-04' || activeIso === '2026-10-25') ? '13' : 'NÃO'}</h1>
+            )}
           </div>
         )}
         <div className="extra-block">

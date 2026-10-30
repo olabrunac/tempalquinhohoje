@@ -148,6 +148,26 @@ body {
   color: var(--muted);
 }
 
+/* O SIM é clicável: cada clique solta confete de novo. */
+.big-answer-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease;
+}
+
+.big-answer-btn:hover {
+  transform: scale(1.02);
+}
+
+.big-answer-btn:active {
+  transform: scale(0.97);
+}
+
 .unset-box {
   text-align: center;
   display: flex;

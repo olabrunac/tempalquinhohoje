@@ -50,7 +50,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Sugestões arquivam**: confirmada ou descartada vai pro **arquivo** (`status=solved`, com `action confirm/dismiss` + `solved_at`) — o admin confere o histórico antes de soltar o link. No arquivo tem botão **apagar** que remove a sugestão de vez (DELETE em item solved), pra deixar só o importante.
 - **Nada de votação**: sugestão serve pra *informar* o admin (data + organizador), não pra votar SIM/NÃO.
 - **Calendário do admin**: verde = SIM marcado, contorno vermelho = NÃO marcado (com nota/link), neutro = sem marcação.
-- **Feedback visual**: confete arco-íris atrás do SIM quando tem palquinho; favicon ✅/❌ conforme o dia.
+- **Feedback visual**: confete arco-íris atrás do SIM quando tem palquinho — dispara ao abrir o site num dia SIM, ao navegar (setas/semana) pra um dia SIM e de novo a cada clique no SIM (que é um botão). Favicon ✅/❌ conforme o dia.
 
 ## Frontend (comportamento)
 - **Tela inicial**: SIM/NÃO gigante, data acima, faixa da semana atual no rodapé (dias verdes/vermelhos; hover mostra as notas do dia, clique abre o Instagram), lista de eventos com nota clicável quando tem link. No canto superior direito fica uma **engrenagem** que abre um **menu flutuante no meio da tela** com: "quer divulgar um evento? manda aqui", "calendário de eventos", Instagram e, no fim, a nota "O tempalquinhohoje é uma iniciativa autônoma de estudantes sem relação com organizadores e instituições da universidade!". O atalho `ç` continua levando pro admin.
