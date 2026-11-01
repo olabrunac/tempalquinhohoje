@@ -49,6 +49,9 @@ def init_db() -> None:
 _EXPECTED = {
     "palquinho_day": {"day", "has_palquinho", "is_other_event", "updated_at"},
     "palquinho_event": {"id", "day", "position", "note", "instagram"},
+    # Tabela nova: precisa estar aqui, senão o precheck do prod acha o schema ok
+    # e pula o create_all — a tabela nunca nasce e o primeiro voto dá 500.
+    "palquinho_vote": {"id", "day", "voter", "going", "created_at", "updated_at"},
     "palquinho_suggestion": {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",
     },

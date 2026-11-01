@@ -19,6 +19,9 @@ export interface TodayOut {
   // Precisa ser explícito: às vezes a nota do dia não é evento.
   is_other_event: boolean
   events: EventItem[]
+  // "você vai?": quem vai sobre o total de respostas (o site mostra "12/20 vão").
+  going_count: number
+  total_count: number
 }
 
 export interface DayOut {
@@ -26,6 +29,15 @@ export interface DayOut {
   has_palquinho: boolean
   is_other_event: boolean
   events: EventItem[]
+  going_count: number
+  total_count: number
+}
+
+export interface VoteOut {
+  day: string
+  going: boolean
+  going_count: number
+  total_count: number
 }
 
 export interface SuggestionOut {
@@ -81,6 +93,12 @@ function jsonHeaders(extra?: HeadersInit): HeadersInit {
 export const api = {
   getToday: () => request<TodayOut>('/today'),
   getDays: () => request<DayOut[]>('/days'),
+  vote: (day: string, voter: string, going: boolean) =>
+    request<VoteOut>(`/vote/${day}`, {
+      method: 'PUT',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ voter, going }),
+    }),
   suggest: (payload: SuggestionIn) =>
     request<SuggestionOut>('/suggestions', {
       method: 'POST',

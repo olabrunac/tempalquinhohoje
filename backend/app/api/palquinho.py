@@ -2,6 +2,8 @@ import secrets
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
+from sqlalchemy import case, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -58,12 +60,53 @@ def _events_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, l
     return grouped
 
 
-def _day_out(row: models.PalquinhoDay, events: list[models.PalquinhoEvent]) -> schemas.DayOut:
+def _parse_day(day: str) -> date:
+    """Data ISO vinda da URL. Entrada inválida vira 422 (e não 500)."""
+    try:
+        return date.fromisoformat(day)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Data inválida (use AAAA-MM-DD)",
+        )
+
+
+def _votes_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, tuple[int, int]]:
+    """Respostas de "você vai?" por dia: (quantos vão, total de respostas).
+
+    Uma query só pra todos os dias — o "não" entra no total, mas não é contado
+    como quem vai (o site mostra "12/20 vão").
+    """
+    if not days:
+        return {}
+    wanted = [d.day for d in days]
+    rows = (
+        db.query(
+            models.PalquinhoVote.day,
+            func.count(models.PalquinhoVote.id),
+            func.coalesce(
+                func.sum(case((models.PalquinhoVote.going.is_(True), 1), else_=0)), 0
+            ),
+        )
+        .filter(models.PalquinhoVote.day.in_(wanted))
+        .group_by(models.PalquinhoVote.day)
+        .all()
+    )
+    return {day: (int(going), int(total)) for day, total, going in rows}
+
+
+def _day_out(
+    row: models.PalquinhoDay,
+    events: list[models.PalquinhoEvent],
+    votes: tuple[int, int] = (0, 0),
+) -> schemas.DayOut:
     return schemas.DayOut(
         day=row.day,
         has_palquinho=row.has_palquinho,
         is_other_event=bool(row.is_other_event) and not row.has_palquinho,
         events=[schemas.EventOut.model_validate(e) for e in events],
+        going_count=votes[0],
+        total_count=votes[1],
     )
 
 
@@ -108,11 +151,14 @@ def get_today(response: Response, db: Session = Depends(get_db)):
     if row is None:
         return schemas.TodayOut(day=today)
     events = _events_by_day(db, [row]).get(today, [])
+    votes = _votes_by_day(db, [row]).get(today, (0, 0))
     return schemas.TodayOut(
         day=today,
         has_palquinho=row.has_palquinho,
         is_other_event=bool(row.is_other_event) and not row.has_palquinho,
         events=[schemas.EventOut.model_validate(e) for e in events],
+        going_count=votes[0],
+        total_count=votes[1],
     )
 
 
@@ -123,6 +169,7 @@ def get_home(response: Response, db: Session = Depends(get_db)):
     today = today_local()
     days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
     grouped = _events_by_day(db, days)
+    votes = _votes_by_day(db, days)
     row = next((d for d in days if d.day == today), None)
     today_out = (
         schemas.TodayOut(day=today)
@@ -132,9 +179,14 @@ def get_home(response: Response, db: Session = Depends(get_db)):
             has_palquinho=row.has_palquinho,
             is_other_event=bool(row.is_other_event) and not row.has_palquinho,
             events=[schemas.EventOut.model_validate(e) for e in grouped.get(today, [])],
+            going_count=votes.get(today, (0, 0))[0],
+            total_count=votes.get(today, (0, 0))[1],
         )
     )
-    return schemas.HomeOut(today=today_out, days=[_day_out(d, grouped.get(d.day, [])) for d in days])
+    return schemas.HomeOut(
+        today=today_out,
+        days=[_day_out(d, grouped.get(d.day, []), votes.get(d.day, (0, 0))) for d in days],
+    )
 
 
 @router.get("/days", response_model=list[schemas.DayOut])
@@ -142,7 +194,8 @@ def list_days(db: Session = Depends(get_db)):
     """Todos os dias já marcados pelo admin, cada um com sua lista de eventos."""
     days = db.query(models.PalquinhoDay).order_by(models.PalquinhoDay.day).all()
     grouped = _events_by_day(db, days)
-    return [_day_out(d, grouped.get(d.day, [])) for d in days]
+    votes = _votes_by_day(db, days)
+    return [_day_out(d, grouped.get(d.day, []), votes.get(d.day, (0, 0))) for d in days]
 
 
 @router.post("/suggestions", response_model=schemas.SuggestionOut, status_code=status.HTTP_201_CREATED)
@@ -171,6 +224,52 @@ def create_suggestion(payload: schemas.SuggestionIn, request: Request, db: Sessi
     return row
 
 
+@router.put("/vote/{day}", response_model=schemas.VoteOut)
+def set_vote(day: str, payload: schemas.VoteIn, request: Request, db: Session = Depends(get_db)):
+    """Resposta anônima de "você vai?" num dia com palquinho.
+
+    Um registro por navegador (token do localStorage), então responder de novo TROCA
+    a resposta em vez de somar outro voto. O contador do site mostra "12/20 vão":
+    quem vai sobre o total de respostas — o "não" só entra no denominador.
+    """
+    d = _parse_day(day)
+    ip = client_ip(request)
+    allowed, _, retry_after = limiter.check(f"vote:{ip}", 120, 3600.0)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas respostas. Tente mais tarde.",
+            headers={"Retry-After": str(int(retry_after) + 1)},
+        )
+
+    if d < today_local():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esse dia já passou")
+    marked = db.query(models.PalquinhoDay).filter_by(day=d).first()
+    if marked is None or not marked.has_palquinho:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Esse dia não é de palquinho"
+        )
+
+    vote = db.query(models.PalquinhoVote).filter_by(day=d, voter=payload.voter).first()
+    if vote is None:
+        db.add(models.PalquinhoVote(day=d, voter=payload.voter, going=payload.going))
+        try:
+            db.commit()
+        except IntegrityError:
+            # duas requisições do mesmo navegador ao mesmo tempo: a segunda vira update
+            db.rollback()
+            vote = db.query(models.PalquinhoVote).filter_by(day=d, voter=payload.voter).first()
+            if vote is not None:
+                vote.going = payload.going
+                db.commit()
+    else:
+        vote.going = payload.going
+        db.commit()
+
+    going, total = _votes_by_day(db, [marked]).get(d, (0, 0))
+    return schemas.VoteOut(day=d, going=payload.going, going_count=going, total_count=total)
+
+
 # ---- Admin (cabeçalho X-Admin-Key) ----
 
 @router.put("/admin/{day}", response_model=schemas.DayOut, dependencies=[Depends(require_admin)])
@@ -181,7 +280,7 @@ def set_day(day: str, payload: schemas.DaySetIn, db: Session = Depends(get_db)):
     events = _replace_events(db, d, payload.events)
     db.commit()
     db.refresh(row)
-    return _day_out(row, events)
+    return _day_out(row, events, _votes_by_day(db, [row]).get(d, (0, 0)))
 
 
 @router.delete("/admin/{day}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
@@ -190,6 +289,9 @@ def unset_day(day: str, db: Session = Depends(get_db)):
     d = date.fromisoformat(day)
     row = db.query(models.PalquinhoDay).filter_by(day=d).first()
     db.query(models.PalquinhoEvent).filter(models.PalquinhoEvent.day == d).delete()
+    # As respostas de "você vai?" morrem com o dia: se o admin desmarcar, o número
+    # antigo não pode voltar na próxima vez que o dia for marcado.
+    db.query(models.PalquinhoVote).filter(models.PalquinhoVote.day == d).delete()
     if row:
         db.delete(row)
     db.commit()
@@ -253,8 +355,9 @@ def get_dashboard(db: Session = Depends(get_db)):
         has_palquinho=marked.get(s.day),
     )
     grouped = _events_by_day(db, days)
+    votes = _votes_by_day(db, days)
     return schemas.DashboardOut(
-        days=[_day_out(d, grouped.get(d.day, [])) for d in days],
+        days=[_day_out(d, grouped.get(d.day, []), votes.get(d.day, (0, 0))) for d in days],
         pending=[to_out(s) for s in pending],
         archive=[to_out(s) for s in archive],
     )
@@ -313,7 +416,7 @@ def confirm_suggestion(suggestion_id: int, payload: schemas.DaySetIn, db: Sessio
         .order_by(models.PalquinhoEvent.position, models.PalquinhoEvent.id)
         .all()
     )
-    return _day_out(row, events)
+    return _day_out(row, events, _votes_by_day(db, [row]).get(sug.day, (0, 0)))
 
 
 @router.delete(

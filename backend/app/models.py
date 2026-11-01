@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, String, Text, func
+from sqlalchemy import Date, DateTime, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import Base
@@ -37,6 +37,27 @@ class PalquinhoEvent(Base):
     position: Mapped[int] = mapped_column(default=1)
     note: Mapped[str] = mapped_column(Text)
     instagram: Mapped[str | None] = mapped_column(String(300), nullable=True)
+
+
+class PalquinhoVote(Base):
+    """Resposta anônima de "você vai?" num dia com palquinho.
+
+    Um registro por navegador (token aleatório no localStorage), unique (day, voter):
+    responder de novo TROCA a resposta em vez de somar outro voto. Sem nome e sem IP —
+    o número é termômetro, não lista de presença. O "não" fica guardado só pra pessoa
+    poder mudar de ideia; o site conta apenas quem vai.
+    """
+    __tablename__ = "palquinho_vote"
+    __table_args__ = (UniqueConstraint("day", "voter", name="uq_vote_day_voter"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    voter: Mapped[str] = mapped_column(String(64))
+    going: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class PalquinhoSuggestion(Base):
