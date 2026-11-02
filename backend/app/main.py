@@ -70,7 +70,10 @@ def debug(db: Session = Depends(get_db)) -> dict:
     existem e quantas linhas tem em cada uma. Em produção responde 404, então não
     vira superfície pública.
     """
-    if IS_PROD or os.getenv("VERCEL_ENV") == "production":
+    # VERCEL_ENV é do deployment ("production" | "preview"), não do .env do projeto.
+    # Importante: o preview também roda com ENVIRONMENT=prod, então IS_PROD sozinho
+    # bloquearia justamente onde precisamos do diagnóstico.
+    if IS_PROD and os.getenv("VERCEL_ENV") != "preview":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     # Cada passo isolado: se uma tabela não existir, devolve o erro só daquele item
