@@ -64,6 +64,14 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.55rem;
+  /* O SIM/NÃO gigante usa line-height: 1, então a tinta do glifo vaza uns 40-50px
+     pra cima da caixa do H1 (numa fonte de 300px). O hit-test do navegador conta
+     esse vazamento: no desktop ele cobria a pílula de "próximo palquinho" e os
+     botões de "você vai?", que ficavam visíveis mas mortos ao clique (no celular
+     a fonte é menor, o vazamento não alcançava). Subir a camada resolve sem mexer
+     no tamanho da resposta. */
+  position: relative;
+  z-index: 2;
 }
 
 .day-notice,
@@ -231,6 +239,14 @@ body {
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.02em;
+  /* line-height: 1 não comporta a tinta do glifo: ela vaza ~0.167em pra cima e
+     ~0.065em pra baixo (59px/23px numa fonte de 352px) e o hit-test do navegador
+     conta esse vazamento. Sem isso, num desktop a resposta gigante roubava o
+     clique da pílula "próximo palquinho" e dos botões "você vai?" (acima) e dos
+     links de evento (abaixo). O padding abre a caixa até a tinta e a margem
+     negativa cancela no layout — nada se move na tela. */
+  padding: 0.17em 0 0.07em;
+  margin: -0.17em 0 -0.07em;
 }
 
 .screen.yes .big-answer {
