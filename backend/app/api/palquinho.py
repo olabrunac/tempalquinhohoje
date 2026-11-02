@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 from sqlalchemy import case, func
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -71,6 +71,28 @@ def _parse_day(day: str) -> date:
         )
 
 
+_vote_table_ready = False
+
+
+def _ensure_vote_table(db: Session) -> None:
+    """Garante a tabela de votos mesmo quando o init_db está desligado.
+
+    A tabela é nova e vazia: criá-la não toca em nada que já existe. Sem essa rede
+    de segurança, um deploy com `RUN_MIGRATIONS=false` na Vercel derrubaria a home
+    inteira (500) no primeiro /home, porque todo endpoint agora conta os votos.
+    Custa um `has_table` por instância (depois disso vira no-op).
+    """
+    global _vote_table_ready
+    if _vote_table_ready:
+        return
+    try:
+        models.PalquinhoVote.__table__.create(bind=db.get_bind(), checkfirst=True)
+    except (OperationalError, ProgrammingError):
+        # corrida entre instâncias: a outra criou primeiro, então está tudo bem
+        db.rollback()
+    _vote_table_ready = True
+
+
 def _votes_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, tuple[int, int]]:
     """Respostas de "você vai?" por dia: (quantos vão, total de respostas).
 
@@ -79,6 +101,7 @@ def _votes_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, tu
     """
     if not days:
         return {}
+    _ensure_vote_table(db)
     wanted = [d.day for d in days]
     rows = (
         db.query(
@@ -250,6 +273,7 @@ def set_vote(day: str, payload: schemas.VoteIn, request: Request, db: Session = 
             status_code=status.HTTP_409_CONFLICT, detail="Esse dia não é de palquinho"
         )
 
+    _ensure_vote_table(db)
     vote = db.query(models.PalquinhoVote).filter_by(day=d, voter=payload.voter).first()
     if vote is None:
         db.add(models.PalquinhoVote(day=d, voter=payload.voter, going=payload.going))
@@ -291,6 +315,7 @@ def unset_day(day: str, db: Session = Depends(get_db)):
     db.query(models.PalquinhoEvent).filter(models.PalquinhoEvent.day == d).delete()
     # As respostas de "você vai?" morrem com o dia: se o admin desmarcar, o número
     # antigo não pode voltar na próxima vez que o dia for marcado.
+    _ensure_vote_table(db)
     db.query(models.PalquinhoVote).filter(models.PalquinhoVote.day == d).delete()
     if row:
         db.delete(row)
