@@ -399,6 +399,14 @@ const setDay = async (has: boolean, isOther: boolean) => {
                         : 'ainda não marcado'}
                 </p>
 
+                {selected?.has_palquinho && (
+                  <p className="muted" style={{ fontSize: '0.85rem', margin: '0.15rem 0 0.6rem' }}>
+                    {selected.total_count === 0
+                      ? 'você vai? ninguém respondeu ainda'
+                      : `você vai? ${selected.going_count}/${selected.total_count} vão`}
+                  </p>
+                )}
+
                 <div className="event-editor">
                   {eventDrafts.map((ev, idx) => (
                     <div key={idx} className="event-row">

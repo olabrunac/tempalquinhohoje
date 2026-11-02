@@ -19,6 +19,44 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// "qui, 19/11" — formato curto do aviso de próximo palquinho.
+function fmtShort(day: string): string {
+  const [y, m, d] = day.split('-').map(Number)
+  return `${WEEKDAYS_SHORT[new Date(y, m - 1, d).getDay()]}, ${d}/${m}`
+}
+
+const VOTER_KEY = 'tph_voter'
+const VOTE_PREFIX = 'tph_vote:'
+
+// Token anônimo do navegador: identifica a resposta de "você vai?" sem nome,
+// e-mail ou IP. É o que permite trocar o voto em vez de somar outro.
+function getVoter(): string {
+  try {
+    const saved = localStorage.getItem(VOTER_KEY)
+    if (saved) return saved
+    const created = crypto.randomUUID().replace(/-/g, '')
+    localStorage.setItem(VOTER_KEY, created)
+    return created
+  } catch {
+    return crypto.randomUUID().replace(/-/g, '')
+  }
+}
+
+// Respostas já dadas neste navegador (por dia), pra não perguntar de novo.
+function readVotes(): Record<string, boolean> {
+  const out: Record<string, boolean> = {}
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (!key?.startsWith(VOTE_PREFIX)) continue
+      out[key.slice(VOTE_PREFIX.length)] = localStorage.getItem(key) === '1'
+    }
+  } catch {
+    // storage bloqueado: o voto vale só nesta aba
+  }
+  return out
+}
+
 // Cada evento do dia tem nota e link próprios. Sem link, a nota é só texto.
 function EventList({ events }: { events?: EventItem[] }) {
   if (!events?.length) return null
@@ -79,6 +117,11 @@ export default function MainScreen() {
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [thankYou, setThankYou] = useState(false)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
+  const [myVotes, setMyVotes] = useState<Record<string, boolean>>(readVotes)
+  const [voteCounts, setVoteCounts] = useState<Record<string, { going: number; total: number }>>({})
+  const [voting, setVoting] = useState(false)
+  const [voteError, setVoteError] = useState('')
+  const voterRef = useRef<string | null>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -159,8 +202,31 @@ export default function MainScreen() {
     fireConfetti()
   }, [activeIso, hasPalquinho, loading])
 
+  // O erro do voto vale só pro dia em que aconteceu: ao trocar de dia, some.
+  useEffect(() => {
+    setVoteError('')
+  }, [activeIso])
+
   const week = getWeekDays(weekStart)
   const activeIndex = week.findIndex((d) => iso(d) === activeIso)
+
+  // Próximo dia SIM a partir do dia que está na tela (nunca no passado).
+  // Tem que ser relativo ao dia VISTO: num dia depois do próximo palquinho, olhar
+  // "de hoje" apontaria pra uma data já passada daquele dia. O /days já vem ordenado.
+  const nextYes =
+    days.find((d) => d.has_palquinho && d.day > activeIso && d.day >= todayIso) ?? null
+
+  // "você vai?": contagem do servidor, com override otimista depois do voto.
+  const votes = voteCounts[activeIso] ?? {
+    going: currentDayData?.going_count ?? 0,
+    total: currentDayData?.total_count ?? 0,
+  }
+  const myVote = myVotes[activeIso]
+  const canVote = hasPalquinho && activeIso >= todayIso
+  const voteLabel =
+    votes.total === 0
+      ? '0 respostas'
+      : `${votes.going}/${votes.total} ${votes.going === 1 ? 'vai' : 'vão'}`
 
   const goLeft = () => {
     if (activeIndex > 0) {
@@ -190,6 +256,65 @@ export default function MainScreen() {
     }
   }
 
+  // Pula direto pro dia do "próximo palquinho" (muda a semana se precisar).
+  const goToDay = (target: string) => {
+    const [y, m, d] = target.split('-').map(Number)
+    const date = new Date(y, m - 1, d)
+    const start = new Date(date)
+    start.setDate(date.getDate() - date.getDay())
+    setSlideDir(iso(start) >= iso(weekStart) ? 1 : -1)
+    setWeekStart(start)
+    setAnimKey((k) => k + 1)
+    setSelectedDayIso(target)
+  }
+
+  // Responde "você vai?" de forma otimista: o número muda na hora e o servidor
+  // confirma depois. Se falhar, volta tudo — contador não pode mentir na tela.
+  const sendVote = async (choice: boolean) => {
+    // Não bloqueia repetir a MESMA resposta: o endpoint é idempotente e isso cura
+    // o caso do localStorage velho (dia desmarcado e remarcado apaga os votos).
+    if (voting) return
+    if (!voterRef.current) voterRef.current = getVoter()
+
+    const day = activeIso
+    const prev = myVote
+    const prevCount = votes
+    const nextGoing = prevCount.going + (choice ? 1 : 0) - (prev === true ? 1 : 0)
+    const nextTotal = prevCount.total + (prev === undefined ? 1 : 0)
+
+    setVoting(true)
+    setVoteError('')
+    setMyVotes((m) => ({ ...m, [day]: choice }))
+    setVoteCounts((c) => ({ ...c, [day]: { going: nextGoing, total: nextTotal } }))
+    try {
+      localStorage.setItem(VOTE_PREFIX + day, choice ? '1' : '0')
+    } catch {
+      // sem storage: vale só nesta aba
+    }
+
+    try {
+      const res = await api.vote(day, voterRef.current, choice)
+      setVoteCounts((c) => ({ ...c, [day]: { going: res.going_count, total: res.total_count } }))
+    } catch {
+      setMyVotes((m) => {
+        const next = { ...m }
+        if (prev === undefined) delete next[day]
+        else next[day] = prev
+        return next
+      })
+      setVoteCounts((c) => ({ ...c, [day]: prevCount }))
+      try {
+        if (prev === undefined) localStorage.removeItem(VOTE_PREFIX + day)
+        else localStorage.setItem(VOTE_PREFIX + day, prev ? '1' : '0')
+      } catch {
+        // sem storage: nada a desfazer
+      }
+      setVoteError('não deu pra registrar — tenta de novo')
+    } finally {
+      setVoting(false)
+    }
+  }
+
   return (
     <div className={`screen ${screenClass}`}>
       <main className="mid">
@@ -211,7 +336,44 @@ export default function MainScreen() {
                 </button>
               )}
             </div>
-            <p className="date-line">{fmtDay(activeIso)}</p>
+            <div className="day-head">
+              <p className="date-line">{fmtDay(activeIso)}</p>
+              {canVote ? (
+                <div className="day-poll">
+                  <span className="poll-q">você vai?</span>
+                  <button
+                    type="button"
+                    className={`poll-chip${myVote === true ? ' on yes' : ''}`}
+                    onClick={() => sendVote(true)}
+                    disabled={voting}
+                    aria-pressed={myVote === true}
+                  >
+                    Sim
+                  </button>
+                  <button
+                    type="button"
+                    className={`poll-chip${myVote === false ? ' on no' : ''}`}
+                    onClick={() => sendVote(false)}
+                    disabled={voting}
+                    aria-pressed={myVote === false}
+                  >
+                    Não
+                  </button>
+                  <span className="poll-count">{voteLabel}</span>
+                </div>
+              ) : !hasPalquinho && nextYes ? (
+                <button
+                  type="button"
+                  className="day-notice"
+                  onClick={() => goToDay(nextYes.day)}
+                  title="ir para esse dia"
+                >
+                  <span className="notice-dot" aria-hidden="true" />
+                  próximo palquinho: {fmtShort(nextYes.day)}
+                </button>
+              ) : null}
+              {voteError && <span className="poll-error">{voteError}</span>}
+            </div>
             {hasPalquinho ? (
               <h1 className="big-answer">
                 <button

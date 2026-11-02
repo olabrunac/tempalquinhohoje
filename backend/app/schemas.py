@@ -7,6 +7,7 @@ MAX_ORGANIZER = 80  # casa com String(80) do model
 MAX_INSTAGRAM = 300  # casa com String(300) do model
 MAX_NOTE = 2000
 MAX_EVENTS_PER_DAY = 5  # trava de segurança: 5 eventos por dia é o suficiente
+MAX_VOTER = 64  # token anônimo do navegador (localStorage), não é identidade
 
 
 class EventOut(BaseModel):
@@ -29,6 +30,10 @@ class DayOut(BaseModel):
     has_palquinho: bool
     is_other_event: bool = False  # sem palquinho, mas é outro evento (laranja)
     events: list[EventOut] = Field(default_factory=list)
+    # "você vai?": quantos disseram que vão e quantas respostas no total
+    # (o site mostra "12/20 vão"; o "não" não aparece sozinho).
+    going_count: int = 0
+    total_count: int = 0
 
     class Config:
         from_attributes = True
@@ -39,6 +44,8 @@ class TodayOut(BaseModel):
     has_palquinho: bool | None = None  # None = não marcado ainda
     is_other_event: bool = False
     events: list[EventOut] = Field(default_factory=list)
+    going_count: int = 0
+    total_count: int = 0
 
 
 class HomeOut(BaseModel):
@@ -81,3 +88,16 @@ class DashboardOut(BaseModel):
     days: list[DayOut]
     pending: list[SuggestionOut]
     archive: list[SuggestionOut]
+
+
+class VoteIn(BaseModel):
+    """Resposta de "você vai?" — anônima, 1 por navegador."""
+    voter: str = Field(min_length=8, max_length=MAX_VOTER, pattern=r"^[A-Za-z0-9_-]+$")
+    going: bool
+
+
+class VoteOut(BaseModel):
+    day: date
+    going: bool  # o que ESTE navegador respondeu
+    going_count: int  # quantos disseram que vão
+    total_count: int  # quantas respostas no total (vão + não vão)
