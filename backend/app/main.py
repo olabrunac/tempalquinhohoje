@@ -91,6 +91,51 @@ def debug(db: Session = Depends(get_db)) -> dict:
         db.rollback()
         tabelas = f"ERRO: {type(exc).__name__}: {str(exc)[:200]}"
 
+    # Colunas reais de cada tabela: é aqui que "coluna faltando" aparece (o schema
+    # do banco pode estar mais velho que o código que está rodando).
+    colunas = {}
+    for nome in ("palquinho_day", "palquinho_event", "palquinho_suggestion", "palquinho_vote"):
+        try:
+            colunas[nome] = sorted(c["name"] for c in inspect(engine).get_columns(nome))
+        except Exception as exc:  # noqa: BLE001
+            db.rollback()
+            colunas[nome] = f"ERRO: {type(exc).__name__}: {str(exc)[:200]}"
+
+    # Reproduz o endpoint que está estourando e guarda a mensagem do banco.
+    def reproduz(fn):
+        try:
+            resultado = fn()
+            if callable(resultado):
+                return {"ok": "funcao_retornada", "tipo": type(resultado).__name__}
+            return {"ok": resultado}
+        except Exception as exc:  # noqa: BLE001
+            import traceback
+
+            db.rollback()
+            frames = [f for f in traceback.format_exc().strip().splitlines() if f.strip()]
+            return {
+                "erro": f"{type(exc).__name__}: {str(exc)[:400]}",
+                "ultimo_frame": frames[-2].strip() if len(frames) > 1 else None,
+            }
+
+    def _conta_dias() -> int:
+        from app import models
+
+        return db.query(models.PalquinhoDay).count()
+
+    def _conta_eventos() -> int:
+        from app import models
+
+        return db.query(models.PalquinhoEvent).count()
+
+    def _roda_days():
+        return len(palquinho.list_days(db))
+
+    def _roda_home():
+        from fastapi import Response
+
+        return palquinho.get_home(Response(), db).model_dump(mode="json")["days"].__len__()
+
     return {
         "vercel_env": os.getenv("VERCEL_ENV", "local"),
         "environment": os.getenv("ENVIRONMENT", "dev"),
@@ -102,11 +147,18 @@ def debug(db: Session = Depends(get_db)) -> dict:
             "nome": engine.url.database,
         },
         "tabelas": tabelas,
+        "colunas": colunas,
         "linhas": {
             "palquinho_day": conta("SELECT COUNT(*) FROM palquinho_day"),
             "palquinho_event": conta("SELECT COUNT(*) FROM palquinho_event"),
             "palquinho_suggestion": conta("SELECT COUNT(*) FROM palquinho_suggestion"),
             "palquinho_vote": conta("SELECT COUNT(*) FROM palquinho_vote"),
+        },
+        "endpoints": {
+            "/days": reproduz(_roda_days),
+            "/home": reproduz(_roda_home),
+            "query_dias": reproduz(_conta_dias),
+            "query_eventos": reproduz(_conta_eventos),
         },
         "dias": {
             "primeiro": conta("SELECT MIN(day) FROM palquinho_day"),
