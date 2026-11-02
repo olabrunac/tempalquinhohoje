@@ -94,7 +94,13 @@ def debug(db: Session = Depends(get_db)) -> dict:
     # Colunas reais de cada tabela: é aqui que "coluna faltando" aparece (o schema
     # do banco pode estar mais velho que o código que está rodando).
     colunas = {}
-    for nome in ("palquinho_day", "palquinho_event", "palquinho_suggestion", "palquinho_vote"):
+    for nome in (
+        "palquinho_day",
+        "palquinho_event",
+        "palquinho_suggestion",
+        "palquinho_presence",
+        "palquinho_vote",  # legado: se existir com name/vote, é o banco antigo
+    ):
         try:
             colunas[nome] = sorted(c["name"] for c in inspect(engine).get_columns(nome))
         except Exception as exc:  # noqa: BLE001
@@ -152,7 +158,8 @@ def debug(db: Session = Depends(get_db)) -> dict:
             "palquinho_day": conta("SELECT COUNT(*) FROM palquinho_day"),
             "palquinho_event": conta("SELECT COUNT(*) FROM palquinho_event"),
             "palquinho_suggestion": conta("SELECT COUNT(*) FROM palquinho_suggestion"),
-            "palquinho_vote": conta("SELECT COUNT(*) FROM palquinho_vote"),
+            "palquinho_presence": conta("SELECT COUNT(*) FROM palquinho_presence"),
+            "palquinho_vote_legado": conta("SELECT COUNT(*) FROM palquinho_vote"),
         },
         "endpoints": {
             "/days": reproduz(_roda_days),

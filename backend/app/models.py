@@ -46,9 +46,15 @@ class PalquinhoVote(Base):
     responder de novo TROCA a resposta em vez de somar outro voto. Sem nome e sem IP —
     o número é termômetro, não lista de presença. O "não" fica guardado só pra pessoa
     poder mudar de ideia; o site conta apenas quem vai.
+
+    BANCO ANTIGO TEM ARMADILHA: existia um `palquinho_vote` de um protótipo com outro
+    formato (`name`, `vote`). Como `create_all` não altera tabela existente, reaproveitar
+    esse nome deixava a query de contagem estourando `UndefinedColumn` e derrubava
+    /days e /home com 500. Por isso a tabela agora se chama `palquinho_presence`:
+    nome novo, criado do zero, sem colidir com nada que já esteja lá.
     """
-    __tablename__ = "palquinho_vote"
-    __table_args__ = (UniqueConstraint("day", "voter", name="uq_vote_day_voter"),)
+    __tablename__ = "palquinho_presence"
+    __table_args__ = (UniqueConstraint("day", "voter", name="uq_presence_day_voter"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     day: Mapped[date] = mapped_column(Date, index=True)

@@ -141,7 +141,7 @@ r = client.delete(f"/api/v1/admin/{D1}", headers=ADMIN)
 check("DELETE -> 204", r.status_code == 204, f"(status {r.status_code})")
 with SessionLocal() as db:
     total = db.execute(
-        text("SELECT COUNT(*) FROM palquinho_vote WHERE day = :d"), {"d": D1}
+        text("SELECT COUNT(*) FROM palquinho_presence WHERE day = :d"), {"d": D1}
     ).scalar()
 check("nenhuma resposta no banco", total == 0, f"(linhas: {total})")
 

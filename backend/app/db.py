@@ -51,7 +51,10 @@ _EXPECTED = {
     "palquinho_event": {"id", "day", "position", "note", "instagram"},
     # Tabela nova: precisa estar aqui, senão o precheck do prod acha o schema ok
     # e pula o create_all — a tabela nunca nasce e o primeiro voto dá 500.
-    "palquinho_vote": {"id", "day", "voter", "going", "created_at", "updated_at"},
+    # Nome `palquinho_presence` (e não `palquinho_vote`): banco antigo já pode ter um
+    # `palquinho_vote` de protótipo com colunas `name`/`vote`, e create_all não altera
+    # tabela existente — reaproveitar o nome derrubava /days e /home com 500.
+    "palquinho_presence": {"id", "day", "voter", "going", "created_at", "updated_at"},
     "palquinho_suggestion": {
         "id", "day", "organizer", "instagram", "status", "action", "solved_at", "created_at",
     },

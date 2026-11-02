@@ -1,7 +1,7 @@
 """Prova que o site não cai quando o deploy chega antes da migração.
 
 Simula o pior caso: RUN_MIGRATIONS=false (init_db desligado) e a tabela
-`palquinho_vote` ainda não existe, como se a Vercel tivesse subido o código novo
+`palquinho_presence` ainda não existe, como se a Vercel tivesse subido o código novo
 num banco com o schema antigo. A home TEM que continuar respondendo 200 (contador
 zerado) e o primeiro voto tem que criar a tabela sozinho — nada de 500 em produção.
 """
@@ -32,7 +32,7 @@ from app.models import PalquinhoDay
 # Schema "antigo": tudo menos a tabela de votos.
 Base.metadata.create_all(bind=engine)
 with engine.begin() as conn:
-    conn.execute(text("DROP TABLE palquinho_vote"))
+    conn.execute(text("DROP TABLE palquinho_presence"))
 
 HOJE = today_local()
 with SessionLocal() as db:
@@ -51,11 +51,11 @@ def check(nome, cond, extra=""):
 
 
 def tem_tabela() -> bool:
-    return inspect(engine).has_table("palquinho_vote")
+    return inspect(engine).has_table("palquinho_presence")
 
 
 with TestClient(app) as client:  # roda o startup (init_db desligado)
-    print("1. schema antigo (sem palquinho_vote) com RUN_MIGRATIONS=false")
+    print("1. schema antigo (sem palquinho_presence) com RUN_MIGRATIONS=false")
     check("tabela de votos ausente", not tem_tabela())
     check("startup não criou nada (init_db desligado)", not tem_tabela())
 
@@ -98,7 +98,7 @@ with TestClient(app) as client:  # roda o startup (init_db desligado)
     r = client.delete(f"/api/v1/admin/{HOJE.isoformat()}", headers=admin)
     check("DELETE -> 204", r.status_code == 204, f"(status {r.status_code})")
     with SessionLocal() as db:
-        n = db.execute(text("SELECT COUNT(*) FROM palquinho_vote")).scalar()
+        n = db.execute(text("SELECT COUNT(*) FROM palquinho_presence")).scalar()
     check("nenhum voto sobrando", n == 0, f"(linhas: {n})")
 
 print()

@@ -98,23 +98,32 @@ def _votes_by_day(db: Session, days: list[models.PalquinhoDay]) -> dict[date, tu
 
     Uma query só pra todos os dias — o "não" entra no total, mas não é contado
     como quem vai (o site mostra "12/20 vão").
+
+    Falha do contador NUNCA derruba a página: o número é enfeite, o SIM/NÃO é o site.
+    Se a tabela estiver com schema inesperado (ex.: um `palquinho_vote` antigo de
+    protótipo), devolve zero em vez de 500 em /home, /days e /today.
     """
     if not days:
         return {}
     _ensure_vote_table(db)
     wanted = [d.day for d in days]
-    rows = (
-        db.query(
-            models.PalquinhoVote.day,
-            func.count(models.PalquinhoVote.id),
-            func.coalesce(
-                func.sum(case((models.PalquinhoVote.going.is_(True), 1), else_=0)), 0
-            ),
+    try:
+        rows = (
+            db.query(
+                models.PalquinhoVote.day,
+                func.count(models.PalquinhoVote.id),
+                func.coalesce(
+                    func.sum(case((models.PalquinhoVote.going.is_(True), 1), else_=0)), 0
+                ),
+            )
+            .filter(models.PalquinhoVote.day.in_(wanted))
+            .group_by(models.PalquinhoVote.day)
+            .all()
         )
-        .filter(models.PalquinhoVote.day.in_(wanted))
-        .group_by(models.PalquinhoVote.day)
-        .all()
-    )
+    except (OperationalError, ProgrammingError):
+        # contador quebrado não pode virar tela vazia: zera e segue
+        db.rollback()
+        return {}
     return {day: (int(going), int(total)) for day, total, going in rows}
 
 
