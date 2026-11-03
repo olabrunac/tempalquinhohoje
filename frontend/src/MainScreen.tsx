@@ -19,6 +19,13 @@ function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Domingo da semana de `d` (a faixa do rodapé começa no domingo).
+function startOfWeek(d: Date): Date {
+  const start = new Date(d)
+  start.setDate(d.getDate() - d.getDay())
+  return start
+}
+
 // "qui, 19/11" — formato curto do aviso de próximo palquinho.
 function fmtShort(day: string): string {
   const [y, m, d] = day.split('-').map(Number)
@@ -146,12 +153,7 @@ export default function MainScreen() {
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [menuOpen])
 
-  const [weekStart, setWeekStart] = useState<Date>(() => {
-    const t = new Date()
-    const start = new Date(t)
-    start.setDate(t.getDate() - t.getDay())
-    return start
-  })
+  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()))
   const [animKey, setAnimKey] = useState(0)
   const [slideDir, setSlideDir] = useState(1)
 
@@ -260,12 +262,24 @@ export default function MainScreen() {
   const goToDay = (target: string) => {
     const [y, m, d] = target.split('-').map(Number)
     const date = new Date(y, m - 1, d)
-    const start = new Date(date)
-    start.setDate(date.getDate() - date.getDay())
+    const start = startOfWeek(date)
     setSlideDir(iso(start) >= iso(weekStart) ? 1 : -1)
     setWeekStart(start)
     setAnimKey((k) => k + 1)
     setSelectedDayIso(target)
+  }
+
+  // Volta pra hoje DE VERDADE: dia e semana. Antes só limpava o dia selecionado,
+  // então depois de avançar uma ou mais semanas a resposta voltava pra hoje mas a
+  // faixa do rodapé continuava presa na semana visitada (e "hoje" nem aparecia nela).
+  const goToday = () => {
+    const start = startOfWeek(new Date())
+    if (iso(start) !== iso(weekStart)) {
+      setSlideDir(iso(start) >= iso(weekStart) ? 1 : -1)
+      setWeekStart(start)
+      setAnimKey((k) => k + 1)
+    }
+    setSelectedDayIso(null)
   }
 
   // Responde "você vai?" de forma otimista: o número muda na hora e o servidor
@@ -329,7 +343,7 @@ export default function MainScreen() {
                 <button
                   type="button"
                   className="admin-link"
-                  onClick={() => setSelectedDayIso(null)}
+                  onClick={goToday}
                   style={{ background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
                 >
                   voltar para hoje
