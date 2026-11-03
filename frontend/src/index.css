@@ -1535,8 +1535,12 @@ body {
   box-shadow: inset 0 0 0 3px #60a5fa, 0 0 10px rgba(96, 165, 250, 0.5);
 }
 
-/* ---- cartão da semana (feed): dias em coluna + nota ao lado ---- */
+/* ---- cartão da semana (feed): dias em coluna + nota ao lado ----
+   A escala tipográfica (`--wkscale`) é calculada no ShareCard medindo o espaço
+   livre: semana com pouco rolê cresce até preencher o cartão, semana cheia
+   encolhe um pouco. Todos os tamanhos abaixo acompanham essa variável. */
 .sc-weekcard {
+  --wkscale: 1;
   align-items: stretch;
   text-align: left;
   justify-content: space-between;
@@ -1554,13 +1558,16 @@ body {
   flex-direction: column;
   gap: 0;
   flex: 1;
+  /* deixa a lista respeitar o espaço do cartão: sem isso ela cresce com o
+     conteúdo e a medição da escala (ShareCard) nunca vê overflow */
+  min-height: 0;
   justify-content: center;
 }
 .sc-wrow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 0;
+  gap: calc(10px * var(--wkscale));
+  padding: calc(4px * var(--wkscale)) 0;
 }
 .sc-wrow:first-child {
   padding-top: 0;
@@ -1573,9 +1580,9 @@ body {
 }
 .sc-wsq {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: calc(28px * var(--wkscale));
+  height: calc(28px * var(--wkscale));
+  border-radius: calc(8px * var(--wkscale));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1585,12 +1592,12 @@ body {
   text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
 }
 .sc-wsq .sc-dow {
-  font-size: 0.4rem;
+  font-size: calc(0.4rem * var(--wkscale));
   text-transform: uppercase;
   opacity: 0.85;
 }
 .sc-wsq .sc-num {
-  font-size: 0.7rem;
+  font-size: calc(0.7rem * var(--wkscale));
   line-height: 1;
 }
 .sc-wsq.sc-yes {
@@ -1604,24 +1611,24 @@ body {
 }
 /* Dia sem evento: quadradinho menor, pra destacar os dias que têm rolê. */
 .sc-wsq.sc-empty {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  width: calc(20px * var(--wkscale));
+  height: calc(20px * var(--wkscale));
+  border-radius: calc(6px * var(--wkscale));
 }
 .sc-wsq.sc-empty .sc-dow {
-  font-size: 0.3rem;
+  font-size: calc(0.3rem * var(--wkscale));
 }
 .sc-wsq.sc-empty .sc-num {
-  font-size: 0.54rem;
+  font-size: calc(0.54rem * var(--wkscale));
 }
 .sc-wnotes {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: calc(3px * var(--wkscale));
   min-width: 0;
 }
 .sc-wnote {
-  font-size: 0.62rem;
+  font-size: calc(0.62rem * var(--wkscale));
   font-weight: 600;
   color: #e5e7eb;
   line-height: 1.26;

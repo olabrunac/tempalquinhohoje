@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 // Estado visual de um dia no cartão: verde (SIM), laranja (outro rolê) ou
 // vermelho (NÃO / sem marcação). Casa com o que a tela pública mostra.
@@ -166,16 +166,61 @@ interface ShareWeekCardProps {
   week: ShareWeekDay[]
 }
 
+// Limites da escala tipográfica do cartão da semana. Semana quase vazia cresce
+// até preencher o espaço; semana lotada de texto encolhe um pouco pra não cortar
+// nada. O valor sai de uma medição real do DOM (o cartão tem tamanho fixo).
+const WEEK_SCALE_MIN = 0.85
+const WEEK_SCALE_MAX = 1.6
+
+// Busca a maior escala que ainda cabe na área da lista. Mexe no `--wkscale` do
+// cartão (que o CSS usa em todos os tamanhos) e soma a altura das linhas.
+function fitWeekScale(card: HTMLElement, list: HTMLElement): number {
+  const fits = (scale: number) => {
+    card.style.setProperty('--wkscale', String(scale))
+    const rows = Array.from(list.children) as HTMLElement[]
+    const used = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0)
+    return used <= list.clientHeight + 0.5
+  }
+  let lo = WEEK_SCALE_MIN
+  let hi = WEEK_SCALE_MAX
+  for (let i = 0; i < 9; i++) {
+    const mid = (lo + hi) / 2
+    if (fits(mid)) lo = mid
+    else hi = mid
+  }
+  card.style.setProperty('--wkscale', lo.toFixed(3))
+  return lo
+}
+
 // Cartão da semana (feed): lista vertical dos dias, cada um com seu quadrado
 // colorido e a(s) nota(s) do dia ao lado. Mesmo fundo preto e tipografia do card
 // do dia. Renderizado on/off-screen e exportado como PNG no ShareModal.
 export function ShareWeekCard({ week }: ShareWeekCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  // Assinatura do conteúdo: só remede quando a semana (ou as notas) mudar de
+  // verdade — o ShareModal recria o array a cada render.
+  const signature = week.map((d) => `${d.day}|${d.state}|${d.notes.join('\u0001')}`).join('\u0002')
+
+  useLayoutEffect(() => {
+    const card = cardRef.current
+    const list = listRef.current
+    if (!card || !list) return
+    setScale(fitWeekScale(card, list))
+  }, [signature])
+
   return (
-    <div className="sc-card sc-feed sc-weekcard">
+    <div
+      ref={cardRef}
+      className="sc-card sc-feed sc-weekcard"
+      style={{ '--wkscale': scale } as React.CSSProperties}
+    >
       <div className="sc-top">
         <span className="sc-date">{fmtWeekRange(week)}</span>
       </div>
-      <div className="sc-week-list">
+      <div className="sc-week-list" ref={listRef}>
         {week.map((d, i) => {
           const hasContent = d.state !== 'no' && d.notes.length > 0
           const prev = i > 0 ? week[i - 1] : null
