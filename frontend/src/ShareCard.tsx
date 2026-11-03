@@ -170,22 +170,39 @@ interface ShareWeekCardProps {
 // até preencher o espaço; semana lotada de texto encolhe um pouco pra não cortar
 // nada. O valor sai de uma medição real do DOM (o cartão tem tamanho fixo).
 const WEEK_SCALE_MIN = 0.85
-const WEEK_SCALE_MAX = 1.6
+const WEEK_SCALE_MAX = 1.45
 
 // Busca a maior escala que ainda cabe na área da lista. Mexe no `--wkscale` do
 // cartão (que o CSS usa em todos os tamanhos) e soma a altura das linhas.
 function fitWeekScale(card: HTMLElement, list: HTMLElement): number {
+  const notes = Array.from(list.querySelectorAll<HTMLElement>('.sc-wnote'))
+
+  // Linhas visuais somadas de todas as notas. Serve pra travar o crescimento:
+  // nota curta (título de um evento) não pode virar 2 linhas só porque a semana
+  // está vazia.
+  const lines = () =>
+    notes.reduce((sum, note) => {
+      const lh = parseFloat(getComputedStyle(note).lineHeight) || 1
+      return sum + Math.round(note.getBoundingClientRect().height / lh)
+    }, 0)
+
   const fits = (scale: number) => {
     card.style.setProperty('--wkscale', String(scale))
     const rows = Array.from(list.children) as HTMLElement[]
     const used = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0)
     return used <= list.clientHeight + 0.5
   }
+
+  // Quantas linhas as notas ocupam no tamanho "de sempre" (escala 1): é o teto
+  // que o cartão não pode passar.
+  card.style.setProperty('--wkscale', '1')
+  const baseLines = lines()
+
   let lo = WEEK_SCALE_MIN
   let hi = WEEK_SCALE_MAX
   for (let i = 0; i < 9; i++) {
     const mid = (lo + hi) / 2
-    if (fits(mid)) lo = mid
+    if (fits(mid) && lines() <= baseLines) lo = mid
     else hi = mid
   }
   card.style.setProperty('--wkscale', lo.toFixed(3))
