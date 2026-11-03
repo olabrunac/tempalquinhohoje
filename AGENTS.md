@@ -86,7 +86,6 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 
 ## Pendências / Backlog
 - **Opcional**: print no README (falta uma screenshot do resultado).
-- **Opcional**: domínio customizado no Vercel.
 
 ## Convenções
 - **Segurança (não quebrar)**: `POST /suggestions` é público e tem rate limit por IP (5/hora). Rotas `/admin/*` usam `require_admin` com rate limit por IP (20 req/5min) + `secrets.compare_digest`. Senha do admin **nunca** vai pro `localStorage` — fica só na memória do React (`AdminScreen.tsx`), então recarregar a página exige logar de novo (intencional). Em `ENVIRONMENT=prod`, `/docs` e `/openapi.json` ficam desligados. Headers de segurança (`X-Frame-Options: DENY`, `nosniff`, `frame-ancestors 'none'`) são adicionados pelo middleware em `main.py`.
@@ -94,7 +93,7 @@ Site simples e divertido: "**tem palquinho hoje?**" — uma página com **SIM gi
 - **Limites de tamanho** nos payloads (`schemas.py`): `organizer` 80, `instagram` 300, `note` 2000 — casa com as colunas do model e corta abuso antes do banco.
 - **Limite de eventos** (`schemas.py`): `events` com `max_length=MAX_EVENTS_PER_DAY` (5) — um `PUT` com 6+ eventos volta 422. O mesmo número vive no frontend (`MAX_EVENTS` em `AdminScreen.tsx`) pro `+` sumir antes do erro.
 - **Testes de segurança**: `python backend/test_seguranca.py` roda uma bateria (rate limit, auth, limites, headers) com SQLite temporário. Não precisa instalar nada a mais.
-- **Testes de eventos**: `python backend/test_eventos.py` cobre a lista por dia (ordem, links separados, substituir a lista, limite de 3, apagar junto com o dia) e a migração da nota antiga.
+- **Testes de eventos**: `python backend/test_eventos.py` cobre a lista por dia (ordem, links separados, substituir a lista, limite de 5, apagar junto com o dia) e a migração da nota antiga.
 - **Testes de voto**: `python backend/test_votos.py` cobre o `você vai?` (1 por navegador, troca, denominador, 409 em dia passado/NÃO/outro rolê/sem marcação, 422 de entrada, limpeza ao desmarcar, rate limit). O teste de rate limit é o **último** de propósito: ele esgota o bucket daquele IP.
 - **Teste do deploy sem migração**: `python backend/test_votos_sem_migracao.py` simula `RUN_MIGRATIONS=false` com a tabela `palquinho_presence` ausente — a home tem que seguir 200 e o primeiro voto cria a tabela sozinho. Roda antes de merge que mexa em schema.
 - **Teste do banco antigo**: `python backend/test_banco_antigo.py` reproduz o incidente do preview (tabela `palquinho_vote` legada com `name`/`vote` + `RUN_MIGRATIONS=false`): `/days`, `/home` e `/today` têm que dar 200 com contador zerado, o voto cria `palquinho_presence` e a tabela legada fica **intacta**.
