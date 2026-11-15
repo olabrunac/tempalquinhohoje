@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { toPng } from 'html-to-image'
 import ShareCard, { buildWeek, ShareWeekCard, type ShareEvent, type ShareState } from './ShareCard'
+import { toPngExato } from './shareImage'
 
 interface ShareModalProps {
   day: string
@@ -42,7 +42,7 @@ export default function ShareModal({ day, state, events, notes, stateOf, notesOf
       setBusy(variant)
       setError('')
       try {
-        const dataUrl = await toPng(node, { pixelRatio: PIXEL_RATIO[variant], cacheBust: true })
+        const dataUrl = await toPngExato(node, PIXEL_RATIO[variant])
         const a = document.createElement('a')
         a.href = dataUrl
         a.download = `palquinho-${day}-${variant}.png`

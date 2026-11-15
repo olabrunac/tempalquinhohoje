@@ -1652,6 +1652,11 @@ body {
   color: #e5e7eb;
   line-height: 1.26;
   white-space: pre-line;
+  /* Nota longa quebra em 2 linhas: sem o "balance" o navegador enche a
+     primeira e joga uma sobra tipo "30)" sozinha na segunda, que parece um
+     espaço vazio/mal distribuído entre um evento e o seguinte. Balancear deixa
+     as duas linhas com largura parecida (não muda a quantidade de linhas). */
+  text-wrap: balance;
 }
 
 .sc-footer {
