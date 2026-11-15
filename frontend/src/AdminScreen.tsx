@@ -142,6 +142,19 @@ export default function AdminScreen() {
     setEventDrafts((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  // Reordena trocando com o vizinho. A ordem do rascunho é a ordem salva
+  // (`position` no banco), então subir/descer aqui já vale pra tela e pro
+  // compartilhar — sem precisar copiar o texto de um evento pro outro.
+  const moveEvent = (idx: number, dir: -1 | 1) => {
+    setEventDrafts((prev) => {
+      const j = idx + dir
+      if (j < 0 || j >= prev.length) return prev
+      const next = [...prev]
+      ;[next[idx], next[j]] = [next[j], next[idx]]
+      return next
+    })
+  }
+
   // Três botões porque são três intenções diferentes:
 //   SIM                    → verde, tem palquinho
 //   NÃO                    → vermelho, só pra deixar a nota do dia
@@ -412,15 +425,35 @@ const setDay = async (has: boolean, isOther: boolean) => {
                     <div key={idx} className="event-row">
                       <div className="event-row-head">
                         <span className="event-row-num">{idx + 1}</span>
-                        <button
-                          className="btn ghost small danger"
-                          onClick={() => removeEvent(idx)}
-                          disabled={busy}
-                          title="apagar esse evento"
-                          aria-label={`Apagar evento ${idx + 1}`}
-                        >
-                          ✕
-                        </button>
+                        <div className="event-row-tools">
+                          <button
+                            className="btn ghost small icon-btn"
+                            onClick={() => moveEvent(idx, -1)}
+                            disabled={busy || idx === 0}
+                            title="mover pra cima"
+                            aria-label={`Mover evento ${idx + 1} pra cima`}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            className="btn ghost small icon-btn"
+                            onClick={() => moveEvent(idx, 1)}
+                            disabled={busy || idx === eventDrafts.length - 1}
+                            title="mover pra baixo"
+                            aria-label={`Mover evento ${idx + 1} pra baixo`}
+                          >
+                            ↓
+                          </button>
+                          <button
+                            className="btn ghost small danger"
+                            onClick={() => removeEvent(idx)}
+                            disabled={busy}
+                            title="apagar esse evento"
+                            aria-label={`Apagar evento ${idx + 1}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                       <textarea
                         className="textarea"

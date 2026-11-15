@@ -408,6 +408,25 @@ body {
   justify-content: space-between;
 }
 
+/* ↑ / ↓ / ✕ do evento: compactos, no canto da linha */
+.event-row-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.event-row-tools .icon-btn {
+  min-width: 2.1rem;
+  padding: 0.4rem 0.45rem;
+  line-height: 1;
+  font-size: 0.95rem;
+}
+
+.event-row-tools .btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .event-row-num {
   font-size: 0.75rem;
   font-weight: 700;
