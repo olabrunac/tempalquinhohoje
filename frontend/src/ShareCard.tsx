@@ -167,46 +167,91 @@ interface ShareWeekCardProps {
 }
 
 // Limites da escala tipográfica do cartão da semana. Semana quase vazia cresce
-// até preencher o espaço; semana lotada de texto encolhe um pouco pra não cortar
-// nada. O valor sai de uma medição real do DOM (o cartão tem tamanho fixo).
-const WEEK_SCALE_MIN = 0.85
+// até preencher o espaço; semana lotada de texto encolhe pra não cortar nada. O
+// valor sai de uma medição real do DOM (o cartão tem tamanho fixo).
+// O piso 0.5 só existe pra semana absurda (5 eventos em todos os dias da
+// semana): abaixo de 0.85 a letra já é bem pequena, mas é melhor miúda do que
+// vazando pra cima do rodapé. Semana normal nunca chega perto disso.
+const WEEK_SCALE_MIN = 0.5
 const WEEK_SCALE_MAX = 1.45
 
-// Busca a maior escala que ainda cabe na área da lista. Mexe no `--wkscale` do
-// cartão (que o CSS usa em todos os tamanhos) e soma a altura das linhas.
+// Até quanto uma nota pode encolher pra caber numa linha só. Resolve o caso
+// chato: nota que passa da largura por pouco e vira 2 linhas com uma sobra
+// perdida embaixo (o "30)" do dia 17, o "multiuso)" do dia 19). 13% é o teto
+// seguro — acima disso a nota começa a destoar das vizinhas, e aí é melhor ela
+// quebrar de verdade (enchendo a linha) do que virar letra miúda.
+const WEEK_NOTE_SHRINK_MAX = 0.13
+
+// Maior escala que ainda cabe na área da lista, medindo o DOM de verdade (o
+// cartão tem tamanho fixo). Deixa o `--wkscale` do cartão já no valor final —
+// todos os tamanhos do CSS saem dele.
 function fitWeekScale(card: HTMLElement, list: HTMLElement): number {
-  const notes = Array.from(list.querySelectorAll<HTMLElement>('.sc-wnote'))
+  const notas = Array.from(list.querySelectorAll<HTMLElement>('.sc-wnote'))
+  const rows = Array.from(list.children) as HTMLElement[]
 
-  // Linhas visuais somadas de todas as notas. Serve pra travar o crescimento:
-  // nota curta (título de um evento) não pode virar 2 linhas só porque a semana
-  // está vazia.
-  const lines = () =>
-    notes.reduce((sum, note) => {
-      const lh = parseFloat(getComputedStyle(note).lineHeight) || 1
-      return sum + Math.round(note.getBoundingClientRect().height / lh)
-    }, 0)
+  const linhas = (nota: HTMLElement) => {
+    const lh = parseFloat(getComputedStyle(nota).lineHeight) || 1
+    return Math.round(nota.getBoundingClientRect().height / lh)
+  }
+  const totalLinhas = () => notas.reduce((sum, nota) => sum + linhas(nota), 0)
+  const usado = () => rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0)
 
-  const fits = (scale: number) => {
-    card.style.setProperty('--wkscale', String(scale))
-    const rows = Array.from(list.children) as HTMLElement[]
-    const used = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0)
-    return used <= list.clientHeight + 0.5
+  // Cada candidata é medida "crua": sem encolhimento nenhum nas notas.
+  const aplicar = (escala: number) => {
+    card.style.setProperty('--wkscale', String(escala))
+    notas.forEach((nota) => nota.style.removeProperty('--notefs'))
   }
 
-  // Quantas linhas as notas ocupam no tamanho "de sempre" (escala 1): é o teto
-  // que o cartão não pode passar.
-  card.style.setProperty('--wkscale', '1')
-  const baseLines = lines()
+  // Linhas ocupadas no tamanho "de sempre" (escala 1): é o teto que o cartão não
+  // pode passar. Serve pra travar o crescimento — nota curta (título de um
+  // evento) não pode virar 2 linhas só porque a semana está vazia.
+  aplicar(1)
+  const baseLinhas = totalLinhas()
 
   let lo = WEEK_SCALE_MIN
   let hi = WEEK_SCALE_MAX
   for (let i = 0; i < 9; i++) {
-    const mid = (lo + hi) / 2
-    if (fits(mid) && lines() <= baseLines) lo = mid
-    else hi = mid
+    const meio = (lo + hi) / 2
+    aplicar(meio)
+    if (usado() <= list.clientHeight + 0.5 && totalLinhas() <= baseLinhas) lo = meio
+    else hi = meio
   }
-  card.style.setProperty('--wkscale', lo.toFixed(3))
+  aplicar(lo)
   return lo
+}
+
+// Nota que passaria da largura por até 13% ganha um encolhimento pra caber numa
+// linha só, em vez de sobrar uma segunda linha com uma palavra perdida (o "30)"
+// do dia 17, o "multiuso)" do dia 19). Acima disso a nota começa a destoar das
+// vizinhas e é melhor ela quebrar de verdade, enchendo a linha.
+// Roda na escala final e escreve `--notefs` direto no elemento: se o valor
+// viesse do estado do React, o reset pra medir brigaria com o style que o React
+// reaplica no render seguinte, e o encolhimento sumia sem aviso (a nota voltava
+// pra 2 linhas).
+function shrinkWeekNotes(list: HTMLElement) {
+  const notas = Array.from(list.querySelectorAll<HTMLElement>('.sc-wnote'))
+  const linhas = (nota: HTMLElement) => {
+    const lh = parseFloat(getComputedStyle(nota).lineHeight) || 1
+    return Math.round(nota.getBoundingClientRect().height / lh)
+  }
+
+  notas.forEach((nota) => {
+    nota.style.removeProperty('--notefs')
+    const disponivel = nota.parentElement?.getBoundingClientRect().width ?? 0
+    if (!disponivel || linhas(nota) < 2) return
+
+    // largura se a nota fosse uma linha só
+    const antes = nota.style.cssText
+    nota.style.whiteSpace = 'nowrap'
+    nota.style.width = 'max-content'
+    const natural = nota.getBoundingClientRect().width
+    nota.style.cssText = antes
+    if (!natural) return
+
+    const precisa = disponivel / natural
+    if (precisa >= 1 || precisa < 1 - WEEK_NOTE_SHRINK_MAX) return
+    nota.style.setProperty('--notefs', String(precisa * 0.99))
+  })
 }
 
 // Cartão da semana (feed): lista vertical dos dias, cada um com seu quadrado
@@ -226,6 +271,7 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
     const list = listRef.current
     if (!card || !list) return
     setScale(fitWeekScale(card, list))
+    shrinkWeekNotes(list)
   }, [signature])
 
   return (
@@ -252,7 +298,7 @@ export function ShareWeekCard({ week }: ShareWeekCardProps) {
               {hasContent && (
                 <div className="sc-wnotes">
                   {d.notes.map((n, i) => (
-                    <span key={i} className="sc-wnote">
+                    <span key={i} className="sc-wnote" data-nota={`${d.day}-${i}`}>
                       {n}
                     </span>
                   ))}
