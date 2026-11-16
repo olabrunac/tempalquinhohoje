@@ -15,6 +15,31 @@
   --line: #e5e7eb;
 }
 
+/* Escala do site = 80% do "tamanho de fábrica".
+   O site é desenhado em rem; a base de 12,8px (= 80% de 16px) reproduz o visual
+   de navegador com zoom 80% — que é como a main sempre foi vista: data, notas,
+   pílula e versão 20% menores, e o SIM/NÃO igual (é vw, não muda com zoom).
+   De quebra, o min() impede que a fonte padrão do navegador (20px = 125%) infle
+   todo texto em rem de uma vez — sintoma de "fonte grande só nessa aba".
+   Se o usuário escolheu fonte padrão menor, ele continua sendo respeitado. */
+html {
+  font-size: min(12.8px, 80%);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* O navegador dimensiona controles de formulário por ~0,8333 × a fonte padrão
+   dele (13,333px a 16px de base). Sem isso, botão sem font-size próprio (setas da
+   semana, engrenagem, botões do admin) infla junto com a fonte padrão do
+   navegador. O seletor de elemento perde pra qualquer classe, então quem já
+   define tamanho continua mandando. */
+button,
+input,
+select,
+textarea {
+  font-size: 0.83333rem;
+}
+
 html,
 body,
 #root {
@@ -1441,6 +1466,12 @@ body {
   align-items: center;
   justify-content: space-between;
   text-align: center;
+  /* O cartão é exportado como imagem a partir de uma caixa fixa de 360px, então
+     não acompanha a escala do site (base 12,8px). 16px é a base em que ele foi
+     desenhado: sem isso, o font-size herdado de um nó de texto solto muda a
+     altura do "strut" da linha (20px -> 21px) e a imagem sai com 0,5px de
+     diferença no espaçamento das linhas da semana. */
+  font-size: 16px;
 }
 .sc-feed {
   width: 360px;
@@ -1471,7 +1502,7 @@ body {
 
 .sc-date {
   color: #d5dbe4;
-  font-size: 0.92rem;
+  font-size: 14.72px;
   text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
 }
 
@@ -1498,7 +1529,7 @@ body {
 }
 
 .sc-note {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
   color: #e5e7eb;
   line-height: 1.35;
@@ -1506,10 +1537,10 @@ body {
   text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
 }
 .sc-story .sc-note {
-  font-size: 1.05rem;
+  font-size: 16.8px;
 }
 .sc-handle {
-  font-size: 0.82rem;
+  font-size: 13.12px;
   color: #d5dbe4;
   font-weight: 600;
   text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
@@ -1533,12 +1564,12 @@ body {
   text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
 }
 .sc-day .sc-dow {
-  font-size: 0.5rem;
+  font-size: 8px;
   text-transform: uppercase;
   opacity: 0.85;
 }
 .sc-day .sc-num {
-  font-size: 0.82rem;
+  font-size: 13.12px;
   line-height: 1;
 }
 .sc-day.sc-yes {
@@ -1611,12 +1642,12 @@ body {
   text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
 }
 .sc-wsq .sc-dow {
-  font-size: calc(0.4rem * var(--wkscale));
+  font-size: calc(6.4px * var(--wkscale));
   text-transform: uppercase;
   opacity: 0.85;
 }
 .sc-wsq .sc-num {
-  font-size: calc(0.7rem * var(--wkscale));
+  font-size: calc(11.2px * var(--wkscale));
   line-height: 1;
 }
 .sc-wsq.sc-yes {
@@ -1635,10 +1666,10 @@ body {
   border-radius: calc(6px * var(--wkscale));
 }
 .sc-wsq.sc-empty .sc-dow {
-  font-size: calc(0.3rem * var(--wkscale));
+  font-size: calc(4.8px * var(--wkscale));
 }
 .sc-wsq.sc-empty .sc-num {
-  font-size: calc(0.54rem * var(--wkscale));
+  font-size: calc(8.64px * var(--wkscale));
 }
 .sc-wnotes {
   display: flex;
@@ -1651,7 +1682,7 @@ body {
    segunda linha com uma palavra perdida. Nota que precisa de mais que isso
    quebra normal (enche a linha e só então pula). */
 .sc-wnote {
-  font-size: calc(0.62rem * var(--wkscale) * var(--notefs, 1));
+  font-size: calc(9.92px * var(--wkscale) * var(--notefs, 1));
   font-weight: 600;
   color: #e5e7eb;
   line-height: 1.26;
@@ -1663,7 +1694,7 @@ body {
 
 .sc-footer {
   margin-top: 10px;
-  font-size: 0.68rem;
+  font-size: 10.88px;
   color: #aeb6c4;
   letter-spacing: 0.02em;
   text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
