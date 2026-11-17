@@ -508,7 +508,7 @@ body {
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: var(--green);
+  background: #15803d;
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
   text-decoration: none;
@@ -591,7 +591,7 @@ body {
   z-index: 10;
   font-size: 0.6rem;
   color: #9ca3af;
-  opacity: 0.5;
+  opacity: 0.85;
   pointer-events: none;
   user-select: none;
 }
@@ -625,7 +625,7 @@ body {
 }
 
 .yes-btn {
-  background: var(--green);
+  background: #15803d;
   color: #fff;
 }
 
@@ -635,7 +635,7 @@ body {
 }
 
 .other-btn {
-  background: var(--orange);
+  background: #c2410c;
   color: #fff;
 }
 
@@ -730,6 +730,29 @@ body {
   border-color: transparent;
 }
 
+/* Foco visível em TODO controle (antes só os campos de texto tinham outline,
+   então quem navega por Tab não enxergava onde estava). :focus-visible só
+   aparece no teclado — o clique/toque continua sem anel. */
+:where(button, a, [role='button'], select, summary):focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Respeita quem pediu menos animação no sistema operacional: confete, slide da
+   semana e transições ficam quase instantâneos (o confete nem dispara, ver
+   fireConfetti no MainScreen). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .textarea {
   min-height: 3.2rem;
   resize: vertical;
@@ -818,7 +841,7 @@ body {
 }
 
 .cal-cell.has-yes {
-  background: var(--green);
+  background: #15803d;
   color: #fff;
 }
 
@@ -949,8 +972,8 @@ body {
 }
 
 .seg-btn.active {
-  background: var(--green);
-  border-color: var(--green);
+  background: #15803d;
+  border-color: #15803d;
   color: #fff;
 }
 
@@ -994,6 +1017,29 @@ body {
   color: #e5e7eb;
 }
 
+/* A célula colorida precisa de texto branco: `.screen.admin .cal-cell` é mais
+   específico que `.cal-cell.has-yes/.has-other`, então o cinza #e5e7eb vencia e
+   dava 4,05:1 sobre o verde. */
+.screen.admin .cal-cell.has-yes,
+.screen.admin .cal-cell.has-other {
+  color: #fff;
+}
+
+/* Vermelho #dc2626 sobre o fundo escuro fica em 4,16:1 (texto pequeno). Nos
+   avisos de erro e nos badges do arquivo, clareia um degrau. */
+.screen .error,
+.modal .error {
+  color: #fca5a5;
+}
+
+.screen.admin .suggestion-badge.confirmed {
+  color: #4ade80;
+}
+
+.screen.admin .suggestion-badge.dismissed {
+  color: #fca5a5;
+}
+
 .screen.admin .cal-cell:hover {
   background: #1f2937;
 }
@@ -1006,6 +1052,7 @@ body {
 .screen.admin .panel-title,
 .screen.admin .current-status,
 .screen.admin .login-title,
+.screen.admin .calendar-title,
 .screen.admin .suggestion-day {
   color: #f3f4f6;
 }
@@ -1132,7 +1179,7 @@ body {
 }
 
 .mini-cal-cell.past {
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .mini-cal-cell.today {
@@ -1140,7 +1187,7 @@ body {
 }
 
 .mini-cal-cell.selected {
-  background: var(--green);
+  background: #15803d;
   color: #fff;
 }
 
@@ -1240,8 +1287,12 @@ body {
   transform: scale(0.96);
 }
 
+/* Células coloridas: branco sobre --green dava 3,3:1 e sobre --orange 2,8:1
+   (o número do dia é texto pequeno, precisa de 4,5:1). Os tons abaixo são os
+   mesmos verdes/laranjas um degrau mais escuros: 5,02:1 e 5,18:1 com branco,
+   sem mudar a identidade da cor. --red já passava (4,83:1). */
 .week-day.yes {
-  background: var(--green);
+  background: #15803d;
 }
 
 .week-day.no {
@@ -1249,11 +1300,11 @@ body {
 }
 
 .week-day.other {
-  background: var(--orange);
+  background: #c2410c;
 }
 
 .cal-cell.has-other {
-  background: var(--orange);
+  background: #c2410c;
   color: #fff;
 }
 
@@ -1408,7 +1459,22 @@ body {
 }
 
 .week-day.past {
-  opacity: 0.4;
+  opacity: 1;
+}
+
+/* Dia passado: opacity .4 derrubava o texto para 1,77:1 (número do dia quase
+   sumia). Em vez de translúcido, a célula fica ESCURA — continua parecendo
+   "passado" no fundo preto, mas o texto branco segue com 9:1 ou mais. */
+.week-day.past.yes {
+  background: #14532d;
+}
+
+.week-day.past.no {
+  background: #7f1d1d;
+}
+
+.week-day.past.other {
+  background: #7c2d12;
 }
 
 .week-dow {

@@ -116,6 +116,7 @@ export default function EventsScreen() {
                     key={key}
                     className={cls}
                     disabled={!hasEvent}
+                    aria-label={`${fmtPt(key)}${hasEvent ? (isOther ? ', tem rolê' : ', tem palquinho') : ', sem evento'}`}
                     onClick={() => {
                       if (day) setSelectedDay(day)
                     }}

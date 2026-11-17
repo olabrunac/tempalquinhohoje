@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from './api'
 
 interface Props {
@@ -39,6 +39,16 @@ export default function SuggestionModal({ onClose, onSent }: Props) {
   const [instagram, setInstagram] = useState('')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
+
+  // Esc fecha, igual ao modal de compartilhar. Antes só o X e o clique fora
+  // fechavam — quem navega por teclado ficava preso no modal.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !sending) onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose, sending])
 
   const nav = (delta: number) => {
     const next = new Date(view.year, view.month + delta, 1)

@@ -93,6 +93,8 @@ function getWeekDays(start: Date): Date[] {
 }
 
 function fireConfetti() {
+  // Quem pediu "menos movimento" no sistema não leva chuva de confete na cara.
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
   const colors = ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899']
   const defaults = { spread: 70, ticks: 220, gravity: 1, startVelocity: 45, colors, zIndex: 1 } as const
   void confetti({ ...defaults, particleCount: 140, origin: { x: 0.2, y: 0.7 } })
@@ -117,6 +119,7 @@ function fitWeekGap(el: HTMLElement) {
 export default function MainScreen() {
   const navigate = useNavigate()
   const weekRef = useRef<HTMLElement>(null)
+  const gearRef = useRef<HTMLButtonElement>(null)
   const [today, setToday] = useState<TodayOut | null>(null)
   const [days, setDays] = useState<DayOut[]>([])
   const [error, setError] = useState('')
@@ -152,6 +155,21 @@ export default function MainScreen() {
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [menuOpen])
+
+  // Ao fechar o menu (Escape, clique fora, ou um item) o foco volta pra
+  // engrenagem. Sem isso o foco caía no <body> e quem usa teclado/leitor de
+  // tela recomeçava a navegação do zero. Se o modal de sugestão abriu junto,
+  // não rouba o foco dele.
+  const menuWasOpen = useRef(false)
+  useEffect(() => {
+    const abriuAntes = menuWasOpen.current
+    menuWasOpen.current = menuOpen
+    if (!abriuAntes || menuOpen || showSuggestion) return
+    const t = window.setTimeout(() => {
+      if (document.activeElement === document.body) gearRef.current?.focus()
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [menuOpen, showSuggestion])
 
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()))
   const [animKey, setAnimKey] = useState(0)
@@ -282,6 +300,33 @@ export default function MainScreen() {
     setSelectedDayIso(null)
   }
 
+  // Setas ← → andam um dia, igual às setas da faixa (atravessa a virada da
+  // semana: domingo ← sábado muda a semana e toca a animação de slide).
+  // Fora daqui quando tem modal/menu aberto ou o foco está num campo de texto,
+  // senão a seta que devia mover o cursor no formulário pularia de dia.
+  useEffect(() => {
+    const onArrow = (e: KeyboardEvent) => {
+      if (showSuggestion || menuOpen) return
+      const alvo = e.target as HTMLElement | null
+      const digitando =
+        alvo instanceof HTMLInputElement ||
+        alvo instanceof HTMLTextAreaElement ||
+        alvo instanceof HTMLSelectElement ||
+        !!alvo?.isContentEditable
+      if (digitando) return
+      if (e.altKey || e.ctrlKey || e.metaKey) return
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        goLeft()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        goRight()
+      }
+    }
+    window.addEventListener('keydown', onArrow)
+    return () => window.removeEventListener('keydown', onArrow)
+  }, [showSuggestion, menuOpen, goLeft, goRight])
+
   // Responde "você vai?" de forma otimista: o número muda na hora e o servidor
   // confirma depois. Se falhar, volta tudo — contador não pode mentir na tela.
   const sendVote = async (choice: boolean) => {
@@ -373,7 +418,7 @@ export default function MainScreen() {
                   >
                     Não
                   </button>
-                  <span className="poll-count">{voteLabel}</span>
+                  <span className="poll-count" aria-live="polite">{voteLabel}</span>
                 </div>
               ) : !hasPalquinho && nextYes ? (
                 <button
@@ -386,7 +431,7 @@ export default function MainScreen() {
                   próximo palquinho: {fmtShort(nextYes.day)}
                 </button>
               ) : null}
-              {voteError && <span className="poll-error">{voteError}</span>}
+              {voteError && <span className="poll-error" role="alert">{voteError}</span>}
             </div>
             {hasPalquinho ? (
               <h1 className="big-answer">
@@ -394,7 +439,7 @@ export default function MainScreen() {
                   type="button"
                   className="big-answer-btn"
                   onClick={fireConfetti}
-                  aria-label="soltar confete de novo"
+                  aria-label="SIM — soltar confete de novo"
                   title="clicou no SIM? mais confete"
                 >
                   SIM
@@ -410,7 +455,7 @@ export default function MainScreen() {
         </div>
       </main>
 
-      <div className="week-nav-container">
+      <nav className="week-nav-container" aria-label="dias da semana">
         <button type="button" className="week-arrow" onClick={goLeft} aria-label="dia anterior">
           ‹
         </button>
@@ -434,6 +479,10 @@ export default function MainScreen() {
               .filter(Boolean)
               .join(' ')
             const title = notas || (has ? 'tem palquinho! 🎉' : isOtherDay ? 'outro evento' : 'acho que não tem')
+            // Leitor de tela antes só lia "dom 15" (e a cor não existe pra ele):
+            // agora fala a data por extenso + o que o dia é + as notas.
+            const status = has ? 'tem palquinho' : isOtherDay ? 'outro evento' : 'sem palquinho'
+            const rotulo = `${fmtDay(key)}${isToday ? ', hoje' : ''}, ${status}${notas ? ': ' + notas : ''}`
             const inner = (
               <>
                 <span className="week-dow">{WEEKDAYS_SHORT[d.getDay()]}</span>
@@ -446,6 +495,8 @@ export default function MainScreen() {
                 key={key}
                 className={cls}
                 title={title}
+                aria-label={rotulo}
+                aria-current={isViewing ? 'date' : undefined}
                 onClick={() => setSelectedDayIso(key)}
                 style={{ background: undefined, border: 'none', cursor: 'pointer', padding: 0 }}
               >
@@ -457,7 +508,7 @@ export default function MainScreen() {
         <button type="button" className="week-arrow" onClick={goRight} aria-label="próximo dia">
           ›
         </button>
-      </div>
+      </nav>
 
       <div className="corner-nav">
         {thankYou ? (
@@ -466,6 +517,7 @@ export default function MainScreen() {
           <button
             type="button"
             className="corner-gear"
+            ref={gearRef}
             onClick={() => setMenuOpen(true)}
             aria-label="abrir menu"
             aria-haspopup="dialog"
