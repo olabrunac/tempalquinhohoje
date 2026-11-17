@@ -15,17 +15,23 @@
   --line: #e5e7eb;
 }
 
-/* Escala do site = 80% do "tamanho de fábrica".
+/* Escala do site = 80% do "tamanho de fábrica" NO CELULAR.
    O site é desenhado em rem; a base de 12,8px (= 80% de 16px) reproduz o visual
-   de navegador com zoom 80% — que é como a main sempre foi vista: data, notas,
+   de navegador com zoom 80% — que é como a main sempre foi vista no celular: notas,
    pílula e versão 20% menores, e o SIM/NÃO igual (é vw, não muda com zoom).
-   De quebra, o min() impede que a fonte padrão do navegador (20px = 125%) infle
-   todo texto em rem de uma vez — sintoma de "fonte grande só nessa aba".
-   Se o usuário escolheu fonte padrão menor, ele continua sendo respeitado. */
+   Em tela larga (desktop) a base fica no de fábrica (16px, com o mesmo min() pra
+   fonte padrão do navegador não inflar tudo de uma vez — sintoma de "fonte grande
+   só nessa aba"). Se o usuário escolheu fonte padrão menor, ele é respeitado. */
 html {
-  font-size: min(12.8px, 80%);
+  font-size: min(16px, 100%);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: min(12.8px, 80%);
+  }
 }
 
 /* O navegador dimensiona controles de formulário por ~0,8333 × a fonte padrão
