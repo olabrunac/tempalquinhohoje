@@ -342,9 +342,9 @@ export default function MainScreen() {
               {selectedDayIso && selectedDayIso !== todayIso && (
                 <button
                   type="button"
-                  className="admin-link"
+                  className="admin-link back-today"
                   onClick={goToday}
-                  style={{ background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px', color: '#fff' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '999px', color: '#fff' }}
                 >
                   voltar para hoje
                 </button>

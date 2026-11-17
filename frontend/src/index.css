@@ -78,7 +78,7 @@ body {
 
 .date-line {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 15.2px;
 }
 
 /* Aviso de "próximo palquinho" (dia NÃO) e enquete "você vai?" (dia SIM):
@@ -121,6 +121,11 @@ body {
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
+  /* tamanho de antes da escala de 80% (base 16px), junto com a data */
+  gap: 6.4px;
+  min-height: 28px;
+  padding: 4.48px 11.2px;
+  font-size: 12.48px;
 }
 
 .day-notice:hover {
@@ -203,6 +208,12 @@ body {
 
 .admin-link:hover {
   color: var(--ink);
+}
+
+/* "voltar para hoje" (só da tela principal): tamanho de antes da escala de 80% */
+.back-today {
+  font-size: 13.6px;
+  padding: 4.8px 12.8px;
 }
 
 .screen.yes .date-line,
