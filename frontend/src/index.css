@@ -392,11 +392,11 @@ body {
   text-decoration: underline;
 }
 
-/* Nota que tem link: sublinhada + seta, pra dar pra ver que dá pra clicar. */
+/* Nota que tem link: sem sublinhado (polui quando tem muitos eventos), só a
+   seta ↗ no fim indica que dá pra clicar. Vale no celular e no desktop. */
 .note-link {
   color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
   cursor: pointer;
   transition: color 0.15s ease;
 }
@@ -428,9 +428,9 @@ body {
   white-space: pre-line;
 }
 
+/* Mesma regra da home: sem sublinhado, a seta ↗ já indica o clique. */
 .event-card-link {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease;
 }

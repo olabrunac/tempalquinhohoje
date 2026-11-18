@@ -14,7 +14,7 @@ function fmtPt(day: string): string {
   return `${d} de ${MONTHS[m - 1]} de ${y}`
 }
 
-// Nota com link vira nota clicável, com seta + sublinhado indicando isso.
+// Nota com link vira nota clicável; a seta ↗ indica o clique, sem sublinhado.
 function EventCard({ note, instagram }: { note: string; instagram?: string | null }) {
   if (!instagram) {
     return <div className="event-card">{note}</div>

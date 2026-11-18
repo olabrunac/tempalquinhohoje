@@ -23,7 +23,7 @@ A resposta aparece grande: **SIM** em verde ou **NÃO** em vermelho. Se ninguém
 **Eventos com cara de evento**
 - Cada dia pode ter até **5 eventos**, cada um com sua nota e seu próprio link do Instagram.
 - A nota pode ter quebra de linha — jeito prático de juntar vários horários no mesmo bloco.
-- Quando a nota tem link, ela fica sublinhada com um **↗**: é clicável, não é texto morto.
+- Quando a nota tem link, ela ganha só uma seta **↗** no final: é clicável, sem sublinhado.
 - Evento e palquinho são coisas diferentes: dá pra ter um dia vermelho com nota de um evento, e um dia laranja de outro rolê. Quem decide a cor é a marcação do dia, não a lista de eventos.
 
 **"Você vai?"**
