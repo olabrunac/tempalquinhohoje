@@ -508,7 +508,7 @@ body {
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: #15803d;
+  background: var(--green);
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
   text-decoration: none;
@@ -625,7 +625,7 @@ body {
 }
 
 .yes-btn {
-  background: #15803d;
+  background: var(--green);
   color: #fff;
 }
 
@@ -635,7 +635,7 @@ body {
 }
 
 .other-btn {
-  background: #c2410c;
+  background: var(--orange);
   color: #fff;
 }
 
@@ -841,7 +841,7 @@ body {
 }
 
 .cal-cell.has-yes {
-  background: #15803d;
+  background: var(--green);
   color: #fff;
 }
 
@@ -972,8 +972,8 @@ body {
 }
 
 .seg-btn.active {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--green);
+  border-color: var(--green);
   color: #fff;
 }
 
@@ -1015,14 +1015,6 @@ body {
 
 .screen.admin .cal-cell {
   color: #e5e7eb;
-}
-
-/* A célula colorida precisa de texto branco: `.screen.admin .cal-cell` é mais
-   específico que `.cal-cell.has-yes/.has-other`, então o cinza #e5e7eb vencia e
-   dava 4,05:1 sobre o verde. */
-.screen.admin .cal-cell.has-yes,
-.screen.admin .cal-cell.has-other {
-  color: #fff;
 }
 
 /* Vermelho #dc2626 sobre o fundo escuro fica em 4,16:1 (texto pequeno). Nos
@@ -1179,7 +1171,7 @@ body {
 }
 
 .mini-cal-cell.past {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .mini-cal-cell.today {
@@ -1187,7 +1179,7 @@ body {
 }
 
 .mini-cal-cell.selected {
-  background: #15803d;
+  background: var(--green);
   color: #fff;
 }
 
@@ -1287,12 +1279,8 @@ body {
   transform: scale(0.96);
 }
 
-/* Células coloridas: branco sobre --green dava 3,3:1 e sobre --orange 2,8:1
-   (o número do dia é texto pequeno, precisa de 4,5:1). Os tons abaixo são os
-   mesmos verdes/laranjas um degrau mais escuros: 5,02:1 e 5,18:1 com branco,
-   sem mudar a identidade da cor. --red já passava (4,83:1). */
 .week-day.yes {
-  background: #15803d;
+  background: var(--green);
 }
 
 .week-day.no {
@@ -1300,11 +1288,11 @@ body {
 }
 
 .week-day.other {
-  background: #c2410c;
+  background: var(--orange);
 }
 
 .cal-cell.has-other {
-  background: #c2410c;
+  background: var(--orange);
   color: #fff;
 }
 
@@ -1458,23 +1446,10 @@ body {
   transform: scale(1.05);
 }
 
+/* Dias passados continuam esmaecidos (opacity) — decisão visual do usuário em
+   16/11/2026: a paleta cheia (verde/laranja/vermelho) manda mais que o AA aqui. */
 .week-day.past {
-  opacity: 1;
-}
-
-/* Dia passado: opacity .4 derrubava o texto para 1,77:1 (número do dia quase
-   sumia). Em vez de translúcido, a célula fica ESCURA — continua parecendo
-   "passado" no fundo preto, mas o texto branco segue com 9:1 ou mais. */
-.week-day.past.yes {
-  background: #14532d;
-}
-
-.week-day.past.no {
-  background: #7f1d1d;
-}
-
-.week-day.past.other {
-  background: #7c2d12;
+  opacity: 0.4;
 }
 
 .week-dow {
