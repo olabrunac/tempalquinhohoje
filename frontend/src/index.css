@@ -360,11 +360,21 @@ body {
   white-space: pre-line;
 }
 
-/* Só o texto dos eventos da tela inicial no celular: 1,4rem dava ~17,9px;
-   arredondado pra baixo fica 17px. O resto do site mantém a base de 12,8px. */
+/* Só os eventos da tela inicial no celular: 1,4rem dava ~17,9px, arredondado
+   pra 17px e depois mais 1px → 16px. A lista e o texto ficam alinhados à
+   esquerda, com uma margem lateral pequena. O resto do site segue centralizado
+   e com a base de 12,8px. */
 @media (max-width: 480px) {
+  .notes-list-simple {
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+  }
   .note-text-simple {
-    font-size: 17px;
+    font-size: 16px;
+    text-align: left;
   }
 }
 
