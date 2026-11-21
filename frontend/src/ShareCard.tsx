@@ -35,19 +35,6 @@ export function fmtPtFull(day: string): string {
   return `${WEEKDAYS_FULL[wd]}, ${d} de ${MONTHS[m - 1]} de ${y}`
 }
 
-// Extrai "@alguem" de um link do Instagram. Aceita link completo, "@alguem"
-// ou só "alguem". Sem info útil, devolve null.
-export function instaHandle(url?: string | null): string | null {
-  if (!url) return null
-  const t = url.trim()
-  if (!t) return null
-  const m = t.match(/instagram\.com\/([^/?#\s]+)/i)
-  let u = m ? m[1] : t.replace(/^@/, '').split(/[/?#\s]/)[0]
-  u = u.replace(/\/+$/, '')
-  if (!u || u === 'p' || u === 'reel') return null
-  return '@' + u
-}
-
 // Monta a semana (domingo→sábado) que contém o dia compartilhado. Dias sem
 // marcação aparecem como "no" (mesmo default da tela principal). O dia central
 // usa o estado/notas que estão na tela (rascunho); os outros vêm do salvo.
@@ -133,7 +120,6 @@ interface ShareCardProps {
 // (html-to-image) no ShareModal. Roda em dev/preview; não vai pro site público.
 export default function ShareCard({ variant, day, state, events, week }: ShareCardProps) {
   const notes = events.map((e) => e.note.trim()).filter(Boolean)
-  const handles = Array.from(new Set(events.map((e) => instaHandle(e.instagram)).filter(Boolean))) as string[]
   const bigLabel = state === 'yes' ? 'SIM' : 'NÃO'
 
   return (
@@ -145,7 +131,6 @@ export default function ShareCard({ variant, day, state, events, week }: ShareCa
       <div className="sc-content">
         <div className={`sc-big sc-${state}`}>{bigLabel}</div>
         {notes.length > 0 && <div className="sc-note">{notes.join('\n')}</div>}
-        {handles.length > 0 && <div className="sc-handle">{handles.join(' · ')}</div>}
       </div>
       <div className="sc-bottom">
         <div className="sc-week">

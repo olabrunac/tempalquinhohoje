@@ -1615,12 +1615,6 @@ body {
 .sc-story .sc-note {
   font-size: 16.8px;
 }
-.sc-handle {
-  font-size: 13.12px;
-  color: #d5dbe4;
-  font-weight: 600;
-  text-shadow: 0 0 16px rgba(0, 0, 0, 1), 0 0 36px rgba(0, 0, 0, 0.92);
-}
 
 .sc-week {
   display: flex;
